@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="firstText">Put number in text dialog ( no spaces) , and click Call</string>
+    <string name="action_settings">Settings</string>
+    <string name="enterNumber">Enter Number Here</string>
+</resources>
