@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SpeechToText</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="speech_prompt">speech prompted</string>
+    <string name="speech_not_supported">speech not supported</string>
+</resources>
