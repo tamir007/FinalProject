@@ -68,7 +68,6 @@ public class PhoneCallHandler extends PhonecallReceiver {
             Log.e("Failed to Prepare", "prepare() failed");
 
         }
-        
         micRecorder.start();
 
     }
