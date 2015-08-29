@@ -65,13 +65,6 @@ public class PhoneCallHandler extends PhonecallReceiver {
         try {
             micRecorder.prepare();
         } catch (IOException e) {
-<<<<<<< HEAD
-            Log.e("Failed to Prepare!", "prepare() failed");
-=======
-
-
-            Log.e("Failed to Prepares", "prepare() failed");
->>>>>>> BasicStuff
 
         }
 

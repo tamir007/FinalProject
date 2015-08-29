@@ -114,7 +114,6 @@ public class SpeechToTextNoPop extends AppCompatActivity {
 
                         }
                         nextListener();
-
                     }
 
                     @Override
@@ -131,7 +130,7 @@ public class SpeechToTextNoPop extends AppCompatActivity {
                     public void onError(int error) {
                         nextListener();
                         //   Log.d(TAG, "Error listening for speech: " + error);
-                        Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -206,7 +205,7 @@ public class SpeechToTextNoPop extends AppCompatActivity {
                     public void onError(int error) {
                         nextListener();
                         //   Log.d(TAG, "Error listening for speech: " + error);
-                        Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
+                      //  Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -283,7 +282,7 @@ public class SpeechToTextNoPop extends AppCompatActivity {
                     public void onError(int error) {
                         nextListener();
                         //   Log.d(TAG, "Error listening for speech: " + error);
-                        Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

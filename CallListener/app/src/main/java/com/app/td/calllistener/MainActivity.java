@@ -1,12 +1,8 @@
 package com.app.td.calllistener;
 
-import android.content.Context;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
@@ -19,22 +15,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 public class MainActivity extends AppCompatActivity {
-    TelephonyManager tm;
-    PhoneCallHandler phoneStateListener;
-    TelephonyManager telephonyManager;
-
-    private class CallStateListener extends PhoneStateListener {
-
-        public void onCallStateChanged(int state, String incomingNumber) {
-            switch (state) {
-                case TelephonyManager.CALL_STATE_RINGING:
-
-                    Toast.makeText(getApplicationContext(), "Incoming : " + incomingNumber,
-                            Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
