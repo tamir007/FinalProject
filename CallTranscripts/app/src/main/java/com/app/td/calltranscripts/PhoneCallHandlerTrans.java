@@ -1,8 +1,10 @@
 package com.app.td.calltranscripts;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognitionListener;
@@ -10,8 +12,11 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.telecom.Call;
 import android.telephony.PhoneStateListener;
+import android.util.Log;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.Toast;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,29 +34,22 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
 
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
-        if (isInstalled) {
-            recordMic(ctx);
-        }
+            recordMic();
     }
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
-
-        if (isInstalled) {
-            //Toast.makeText(ctx, "Here", Toast.LENGTH_SHORT).show();
-            recordMic(ctx);
-        }
+            recordMic();
     }
 
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-
-        if (isInstalled) stopRecordMic();
+            stopRecordMic();
     }
 
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
-        if (isInstalled) stopRecordMic();
+         stopRecordMic();
     }
 
     @Override
@@ -60,9 +58,9 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
     }
 
 
-    private void recordMic(Context ctx) {
+    private void recordMic() {
         speech = new SpeechToTextNoPop();
-        speech.initialize(ctx);
+        speech.initialize();
         speech.run();
 
     }
@@ -73,14 +71,14 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
 
 
     public class SpeechToTextNoPop {
-
-        SpeechRecognizer recognizer, recognizer_two, recognizer_three;
-        Intent intent, intent_two, intent_three;
+        String debugTag = "debug";
+        SpeechRecognizer recognizer;
+        Intent intent;
         boolean isNewConversation, shouldStop;
         int listenerNum;
         String theText;
         FileWriter writeFile;
-
+        boolean isSpeaking;
         private void saveFile() {
             try {
                 writeFile.write(theText);
@@ -90,69 +88,77 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
             }
         }
 
+        /**
+         * Initialize SpeechToTextNoPop
+         */
+        protected void initialize() {
+            try {
+                FileReader readFile = new FileReader(Environment.getExternalStorageDirectory().getAbsolutePath() +
+                        "/call_data.txt");
+                char isBitOn = (char)readFile.read();
+                switch(isBitOn){
+                    case '0':
+                        isInstalled = false;
+                        Log.d(debugTag , "isInstalled = false");
+                        break;
+                    case '1':
+                        Log.d(debugTag , "isInstalled = true");
+                        isInstalled = true;
+                        break;
+                }
 
-        protected void initialize(Context cxt) {
+                readFile.close();
+            } catch (IOException e) {
+                Log.d(debugTag , "error reading file");
+            }
+
+            Log.d(debugTag , "read installation bit");
+
             try {
                 writeFile = new FileWriter(Environment.getExternalStorageDirectory().getAbsolutePath() +
                         "/newCall.txt");
             } catch (IOException e) {
                 // do nothing
             }
-
+            Log.d(debugTag , "FileWriter set up");
             listenerNum = 1;
             theText = "";
-            //myContext = cxt;
             isNewConversation = true;
             shouldStop = false;
-            // 3 Intents
-            intent = getNewRecognitionIntet();
-            intent_two = getNewRecognitionIntet();
-            intent_three = getNewRecognitionIntet();
 
-            // 3 Speech Recognizer
-            recognizer = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
-            recognizer_two = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
-            recognizer_three = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
+            // 1 Intents
+            intent = createRecognitionIntent();
+            // 1 Speech Recognizer
+            recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
 
+            Log.d(debugTag, "after recognizer init");
         }
 
-
         public void run() {
-
+            if(!isInstalled) return;
             // mute sounds
             muteSounds();
             // The Listeners
-            RecognitionListener listener = newRecognitionListener();
-            RecognitionListener listener_two = newRecognitionListener();
-            RecognitionListener listener_three = newRecognitionListener();
-
+            Log.d(debugTag , "get new listener");
+            RecognitionListener listener = createRecognitionListener();
             // Set Listeners to SpeechRecognizer
+            Log.d(debugTag , "before bind - recognizer and listener");
             recognizer.setRecognitionListener(listener);
-            recognizer_two.setRecognitionListener(listener_two);
-            recognizer_three.setRecognitionListener(listener_three);
-
             //run first recognizer
+            Log.d(debugTag, "after bind - recognizer and listener");
             runSpeech(recognizer, intent);
-
-
+            Log.d(debugTag , "after run speech");
         }
 
         public void stop() {
 
             shouldStop = true;
-
+            Log.d(debugTag, "stop call");
             saveFile();
-            try {
-                Thread.sleep(6000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Log.d(debugTag, "File saved");
+            recognizer.cancel();
             recognizer.destroy();
-            recognizer_two.destroy();
-            recognizer_three.destroy();
+            Log.d(debugTag, "destroyed recognizer");
             unMuteSounds();
             Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
             return;
@@ -162,13 +168,13 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
             n_recognizer.startListening(n_intent);
         }
 
-
-        public RecognitionListener newRecognitionListener() {
+        public RecognitionListener createRecognitionListener() {
+            
             return new RecognitionListener() {
 
                 @Override
                 public void onResults(Bundle results) {
-
+                    Log.d(debugTag, "onResults");
                     ArrayList<String> voiceResults = results
                             .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (voiceResults == null) {
@@ -176,96 +182,84 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
                     } else {
                         theText += voiceResults.get(0) + "\n";
                     }
-
+                    Log.d(debugTag, "Before should stop");
                     // if should stop and not continue the listener cycles
-                    if (!shouldStop) nextListener();
-
+                    if (!shouldStop) {
+                        Log.d(debugTag, "called reRunListener");
+                        reRunListener();
+                        Log.d(debugTag, "returned reRunListener");
+                    }
                 }
 
                 @Override
                 public void onReadyForSpeech(Bundle params) {
-                    //Toast.makeText(getApplicationContext(), "Ready For Speech", Toast.LENGTH_SHORT).show();
-                    //  Log.d(TAG, "Ready for speech");
-
+                    Log.d(debugTag, "Ready for speech");
                 }
 
-
-                private void nextListener() {
-                    switch (listenerNum) {
-                        case 1:
-                            runSpeech(recognizer_two, intent_two);
-                            listenerNum = 2;
-                            break;
-                        case 2:
-                            runSpeech(recognizer_three, intent_three);
-                            listenerNum = 3;
-                            break;
-                        case 3:
-                            runSpeech(recognizer, intent);
-                            listenerNum = 1;
-                            break;
-
-                    }
-
+                private void reRunListener() {
+                    recognizer.cancel();
+                    runSpeech(recognizer, intent);
                 }
 
                 @Override
                 public void onError(int error) {
-                    nextListener();
-                    Toast.makeText(myContext, "Error : " + error, Toast.LENGTH_SHORT).show();
-                    //   Log.d(TAG, "Error listening for speech: " + error);
-                    //Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
+                    Log.d(debugTag, "onError : " + error);
+                    if(!shouldStop) reRunListener();
                 }
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    //Toast.makeText(getApplicationContext(), "Speech Starting", Toast.LENGTH_SHORT).show();
-                    //    Log.d(TAG, "Speech starting");
+                    isSpeaking = true;
+                    Log.d(debugTag, "onBeginingOfSpeech");
                 }
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
-                    // TODO Auto-generated method stub
-
+                    Log.d(debugTag, "onBufferRecieved");
                 }
 
                 @Override
                 public void onEndOfSpeech() {
-
-                    // TODO Auto-generated method stub
+                    Log.d(debugTag, "onEndOfSpeech");
 
                 }
 
                 @Override
                 public void onEvent(int eventType, Bundle params) {
-                    // TODO Auto-generated method stub
-
+                    Log.d(debugTag, "onEevent");
                 }
 
                 @Override
                 public void onPartialResults(Bundle partialResults) {
                     // TODO Auto-generated method stub
-
+                    Log.d(debugTag, "onPartialResults");
+                    ArrayList<String> voiceResults = partialResults
+                            .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (voiceResults == null) {
+                        // do nothing;
+                    } else {
+                        theText += voiceResults.get(0) + "\n";
+                    }
                 }
-
                 @Override
                 public void onRmsChanged(float rmsdB) {
                     // TODO Auto-generated method stub
-
                 }
             };
         }
 
-        private Intent getNewRecognitionIntet() {
+        private Intent createRecognitionIntent() {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
                     "com.app.td.calltranscripts");
+            intent.putExtra("android.speech.extra.DICTATION_MODE", true);
             return intent;
         }
 
         private void muteSounds() {
+            Log.d(debugTag, "muteSound");
             AudioManager aManager = (AudioManager) myContext.getSystemService(Context.AUDIO_SERVICE);
             aManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
             aManager.setStreamMute(AudioManager.STREAM_ALARM, true);
@@ -275,6 +269,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
         }
 
         private void unMuteSounds() {
+            Log.d(debugTag, "unMuteSounds");
             AudioManager aManager = (AudioManager) myContext.getSystemService(Context.AUDIO_SERVICE);
             aManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, false);
             aManager.setStreamMute(AudioManager.STREAM_ALARM, false);
@@ -284,6 +279,4 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
 
         }
     }
-
-
 };
