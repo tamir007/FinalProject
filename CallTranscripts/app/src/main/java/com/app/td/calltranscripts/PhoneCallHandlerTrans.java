@@ -1,6 +1,9 @@
 package com.app.td.calltranscripts;
 
+
 import android.Manifest;
+
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +14,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
+
 import android.net.Uri;
+
+import android.nfc.Tag;
+
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
@@ -21,6 +28,10 @@ import android.speech.SpeechRecognizer;
 import android.telecom.Call;
 import android.telephony.PhoneStateListener;
 import android.util.Log;
+
+
+import android.view.animation.AccelerateInterpolator;
+
 import android.widget.Toast;
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -31,6 +42,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -59,30 +71,23 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
 
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
-        if (isInstalled) {
-            recordMic(ctx);
-        }
+            recordMic();
     }
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
-        Log.i(TAG, "outgoing call started");
-        if (isInstalled) {
-            Toast.makeText(ctx, "Here", Toast.LENGTH_SHORT).show();
-            recordMic(ctx);
-        }
+            recordMic();
+
     }
 
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-        Log.i(TAG, "on incoming call ended");
-        if (isInstalled) stopRecordMic();
+            stopRecordMic();
     }
 
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
-        Log.i(TAG, "on outgoing call ended");
-        if (isInstalled) stopRecordMic();
+        stopRecordMic();
     }
 
     @Override
@@ -91,7 +96,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
     }
 
 
-    private void recordMic(Context ctx) {
+    private void recordMic() {
         Log.i(TAG, "record mic");
         if (checkPlayServices()) {
 
@@ -109,7 +114,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
         }
         double location = getLocation();
         speech = new SpeechToTextNoPop();
-        speech.initialize(ctx, location);
+        speech.initialize(location);
         speech.run();
 
     }
@@ -183,14 +188,14 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
 
 
     public class SpeechToTextNoPop {
-
-        SpeechRecognizer recognizer, recognizer_two, recognizer_three;
-        Intent intent, intent_two, intent_three;
+        String debugTag = "debug";
+        SpeechRecognizer recognizer;
+        Intent intent;
         boolean isNewConversation, shouldStop;
         int listenerNum;
         String theText;
         FileWriter writeFile;
-
+        boolean isSpeaking;
         private void saveFile() {
             try {
                 writeFile.write(theText);
@@ -222,73 +227,30 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
         }
 
 
-//        /*----Method to Check GPS is enable or disable ----- */
-//        private Boolean displayGpsStatus() {
-//            ContentResolver contentResolver = myContext.getContentResolver();
-//            boolean gpsStatus = Settings.Secure
-//                    .isLocationProviderEnabled(contentResolver,
-//                            GPS_PROVIDER);
-//            if (gpsStatus) {
-//                return true;
-//
-//            } else {
-//                return false;
-//            }
-//        }
-//
-//
-//        /*----------Listener class to get coordinates ------------- */
-//        private class MyLocationListener implements LocationListener {
-//            @Override
-//            public void onLocationChanged(Location loc) {
-//
-//
-//                Toast.makeText(myContext, "Location changed : Lat: " +
-//                                loc.getLatitude() + " Lng: " + loc.getLongitude(),
-//                        Toast.LENGTH_SHORT).show();
-//                String longitude = "Longitude: " + loc.getLongitude();
-//                Log.i(TAG, longitude);
-//                String latitude = "Latitude: " + loc.getLatitude();
-//                Log.i(TAG, latitude);
-//
-//    /*----------to get City-Name from coordinates ------------- */
-//                String cityName = null;
-//                Geocoder gcd = new Geocoder(myContext,
-//                        Locale.getDefault());
-//                List<Address> addresses;
-//                try {
-//                    addresses = gcd.getFromLocation(loc.getLatitude(), loc
-//                            .getLongitude(), 1);
-//                    if (addresses.size() > 0)
-//                        System.out.println(addresses.get(0).getLocality());
-//                    cityName = addresses.get(0).getLocality();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                String s = longitude + "\n" + latitude +
-//                        "\n\nMy Currrent City is: " + cityName;
-//            }
-//
-//            @Override
-//            public void onProviderDisabled(String provider) {
-//                // TODO Auto-generated method stub
-//            }
-//
-//            @Override
-//            public void onProviderEnabled(String provider) {
-//                // TODO Auto-generated method stub
-//            }
-//
-//            @Override
-//            public void onStatusChanged(String provider,
-//                                        int status, Bundle extras) {
-//                // TODO Auto-generated method stub
-//            }
-//        }
 
+        protected void initialize( double location) {
+            try {
+                FileReader readFile = new FileReader(Environment.getExternalStorageDirectory().getAbsolutePath() +
+                        "/call_data.txt");
+                char isBitOn = (char)readFile.read();
+                switch(isBitOn){
+                    case '0':
+                        isInstalled = false;
+                        Log.d(debugTag , "isInstalled = false");
+                        break;
+                    case '1':
+                        Log.d(debugTag , "isInstalled = true");
+                        isInstalled = true;
+                        break;
+                }
 
-        protected void initialize(Context cxt, double location) {
+                readFile.close();
+            } catch (IOException e) {
+                Log.d(debugTag , "error reading file");
+            }
+
+            Log.d(debugTag , "read installation bit");
+
             try {
                 writeFile = new FileWriter(Environment.getExternalStorageDirectory().getAbsolutePath() +
                         "/newCall.txt");
@@ -326,62 +288,46 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
                 e.printStackTrace();
             }
 
-
-
+            Log.d(debugTag , "FileWriter set up");
             listenerNum = 1;
             theText = "";
-            //myContext = cxt;
             isNewConversation = true;
             shouldStop = false;
-            // 3 Intents
-            intent = getNewRecognitionIntet();
-            intent_two = getNewRecognitionIntet();
-            intent_three = getNewRecognitionIntet();
 
-            // 3 Speech Recognizer
-            recognizer = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
-            recognizer_two = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
-            recognizer_three = SpeechRecognizer
-                    .createSpeechRecognizer(myContext);
+            // 1 Intents
+            intent = createRecognitionIntent();
+            // 1 Speech Recognizer
+            recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
 
+            Log.d(debugTag, "after recognizer init");
         }
-
 
         public void run() {
             Log.i(TAG, "run");
+            if(!isInstalled) return;
             // mute sounds
             muteSounds();
             // The Listeners
-            RecognitionListener listener = newRecognitionListener();
-            RecognitionListener listener_two = newRecognitionListener();
-            RecognitionListener listener_three = newRecognitionListener();
-
+            Log.d(debugTag , "get new listener");
+            RecognitionListener listener = createRecognitionListener();
             // Set Listeners to SpeechRecognizer
+            Log.d(debugTag , "before bind - recognizer and listener");
             recognizer.setRecognitionListener(listener);
-            recognizer_two.setRecognitionListener(listener_two);
-            recognizer_three.setRecognitionListener(listener_three);
-
             //run first recognizer
+            Log.d(debugTag, "after bind - recognizer and listener");
             runSpeech(recognizer, intent);
-
-
+            Log.d(debugTag , "after run speech");
         }
 
         public void stop() {
             Log.i(TAG, "stop");
             shouldStop = true;
-
+            Log.d(debugTag, "stop call");
             saveFile();
-            try {
-                Thread.sleep(6000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Log.d(debugTag, "File saved");
+            recognizer.cancel();
             recognizer.destroy();
-            recognizer_two.destroy();
-            recognizer_three.destroy();
+            Log.d(debugTag, "destroyed recognizer");
             unMuteSounds();
             Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
             return;
@@ -393,13 +339,13 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
 
         }
 
-
-        public RecognitionListener newRecognitionListener() {
+        public RecognitionListener createRecognitionListener() {
+            
             return new RecognitionListener() {
 
                 @Override
                 public void onResults(Bundle results) {
-                    Log.i(TAG , "RESULTS");
+                    Log.d(debugTag, "onResults");
                     ArrayList<String> voiceResults = results
                             .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (voiceResults == null) {
@@ -407,104 +353,65 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
                     } else {
                         theText += voiceResults.get(0) + "\n";
                     }
-
+                    Log.d(debugTag, "Before should stop");
                     // if should stop and not continue the listener cycles
-                    if (!shouldStop) nextListener();
-
+                    if (!shouldStop) {
+                        Log.d(debugTag, "called reRunListener");
+                        reRunListener();
+                        Log.d(debugTag, "returned reRunListener");
+                    }
                 }
 
                 @Override
                 public void onReadyForSpeech(Bundle params) {
-                    Log.i(TAG, "on ready for speech");
-                    //Toast.makeText(getApplicationContext(), "Ready For Speech", Toast.LENGTH_SHORT).show();
-                    //  Log.d(TAG, "Ready for speech");
 
+                    Log.d(debugTag, "Ready for speech");
                 }
 
-
-                private void nextListener() {
-                    switch (listenerNum) {
-                        case 1:
-                            runSpeech(recognizer_two, intent_two);
-                            Log.i(TAG, "started listening: second listener");
-                            listenerNum = 2;
-                            break;
-                        case 2:
-                            runSpeech(recognizer_three, intent_three);
-                            Log.i(TAG, "started listening: third listener");
-                            listenerNum = 3;
-                            break;
-                        case 3:
-                            runSpeech(recognizer, intent);
-                            Log.i(TAG, "started listening: first listener");
-                            listenerNum = 1;
-                            break;
-
-                    }
-
+                private void reRunListener() {
+                    recognizer.cancel();
+                    runSpeech(recognizer, intent);
                 }
-                private void stopListener() {
-                    switch (listenerNum) {
-                        case 1:
-                            recognizer.stopListening();
-                            Log.i(TAG, "first listener stopped manually");
-                            break;
-                        case 2:
-                            recognizer_two.stopListening();
-                            Log.i(TAG, "second listener stopped manually");
-                            break;
-                        case 3:
-                            recognizer_three.stopListening();
-                            Log.i(TAG, "third listener stopped manually");
-                            break;
 
-                    }
-
-                }
 
                 @Override
                 public void onError(int error) {
-                    Log.i(TAG, "on error number : " + error);
-                    if (error == 6) stopListener();
-                    nextListener();
-                    Toast.makeText(myContext, "Error : " + error, Toast.LENGTH_SHORT).show();
-                    //   Log.d(TAG, "Error listening for speech: " + error);
-                    //Toast.makeText(getApplicationContext(), "Error listening for speech:" + error, Toast.LENGTH_SHORT).show();
+                    Log.d(debugTag, "onError : " + error);
+                    if(!shouldStop) reRunListener();
                 }
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    Log.i(TAG, "on Begining of speech");
-                    //Toast.makeText(getApplicationContext(), "Speech Starting", Toast.LENGTH_SHORT).show();
-                    //    Log.d(TAG, "Speech starting");
+                    isSpeaking = true;
+                    Log.d(debugTag, "onBeginingOfSpeech");
                 }
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
-                    // TODO Auto-generated method stub
-                    Log.i(TAG, "on buffer received");
+                    Log.d(debugTag, "onBufferRecieved");
                 }
 
                 @Override
                 public void onEndOfSpeech() {
-                    Log.i(TAG, "on end of speech");
-                    // TODO Auto-generated method stub
-
+                    Log.d(debugTag, "onEndOfSpeech");
                 }
 
                 @Override
                 public void onEvent(int eventType, Bundle params) {
-                    Log.i(TAG, "on Event");
-                    // TODO Auto-generated method stub
-
+                    Log.d(debugTag, "onEevent");
                 }
 
                 @Override
                 public void onPartialResults(Bundle partialResults) {
-                    // TODO Auto-generated method stub
-                    Log.i(TAG, "Partial results");
+                    Log.d(debugTag, "onPartialResults");
+                    ArrayList<String> voiceResults = partialResults
+                            .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (voiceResults == null) {
+                        // do nothing;
+                    } else {
+                        theText += voiceResults.get(0) + "\n";
+                    }
                 }
-
                 @Override
                 public void onRmsChanged(float rmsdB) {
                     // TODO Auto-generated method stub
@@ -512,16 +419,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
             };
         }
 
-        private Intent getNewRecognitionIntet() {
+        private Intent createRecognitionIntent() {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
                     "com.app.td.calltranscripts");
+            intent.putExtra("android.speech.extra.DICTATION_MODE", true);
             return intent;
         }
 
         private void muteSounds() {
+            Log.d(debugTag, "muteSound");
             AudioManager aManager = (AudioManager) myContext.getSystemService(Context.AUDIO_SERVICE);
             aManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
             aManager.setStreamMute(AudioManager.STREAM_ALARM, true);
@@ -531,6 +440,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
         }
 
         private void unMuteSounds() {
+            Log.d(debugTag, "unMuteSounds");
             AudioManager aManager = (AudioManager) myContext.getSystemService(Context.AUDIO_SERVICE);
             aManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, false);
             aManager.setStreamMute(AudioManager.STREAM_ALARM, false);
@@ -540,6 +450,4 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver implements GoogleAp
 
         }
     }
-
-
 };

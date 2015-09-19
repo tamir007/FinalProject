@@ -2,7 +2,9 @@ package com.app.td.calltranscripts;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
@@ -12,6 +14,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
@@ -23,9 +26,10 @@ public class CallTranscript extends AppCompatActivity {
         setContentView(R.layout.activity_call_transcript);
         Log.i(PhoneCallHandlerTrans.TAG , "onCreate");
         CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox);
-        if (PhoneCallHandlerTrans.isInstalled) {
-            checkBox.setChecked(true);
-        }
+        // checks if receiver is installed and init checkBox
+        checkIfInstalled(checkBox);
+
+        // set up checkbox on click
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 File myFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -65,10 +69,35 @@ public class CallTranscript extends AppCompatActivity {
 
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
         Log.i(PhoneCallHandlerTrans.TAG, "on start");
+    }
+
+    private void checkIfInstalled(CheckBox box){
+        try {
+            FileReader readFile = new FileReader(Environment.getExternalStorageDirectory().getAbsolutePath() +
+                    "/call_data.txt");
+            char isBitOn = (char)readFile.read();
+            switch(isBitOn){
+                case '0':
+                    Log.d("Tamir", "isInstalled = false");
+                    box.setChecked(false);
+                    deActivateRecord();
+                    break;
+                case '1':
+                    Log.d("Tamir" , "isInstalled = true");
+                    box.setChecked(true);
+                    activateRecord();
+                    break;
+            }
+
+            readFile.close();
+        } catch (IOException e) {
+            // do nothing
+        }
     }
 
     private void activateRecord() {
