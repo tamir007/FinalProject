@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,7 +21,7 @@ public class CallTranscript extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_call_transcript);
-
+        Log.i(PhoneCallHandlerTrans.TAG , "onCreate");
         CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox);
         if (PhoneCallHandlerTrans.isInstalled) {
             checkBox.setChecked(true);
@@ -37,6 +38,7 @@ public class CallTranscript extends AppCompatActivity {
                     myOutWriter = new OutputStreamWriter(fOut);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Log.i(PhoneCallHandlerTrans.TAG , "Exception");
                 }
                 if (isChecked) {
                     try {
@@ -63,7 +65,14 @@ public class CallTranscript extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(PhoneCallHandlerTrans.TAG, "on start");
+    }
+
     private void activateRecord() {
+        Log.i(PhoneCallHandlerTrans.TAG , "activateRecord");
         PhoneCallHandlerTrans.myContext = getApplicationContext();
         PhoneCallHandlerTrans.isInstalled = true;
         Toast.makeText(getApplicationContext(), "Call Recorder Acativated", Toast.LENGTH_SHORT).show();
@@ -73,6 +82,7 @@ public class CallTranscript extends AppCompatActivity {
 
 
     private void deActivateRecord() {
+        Log.i(PhoneCallHandlerTrans.TAG, "deactivate record");
         PhoneCallHandlerTrans.isInstalled = false;
         Toast.makeText(getApplicationContext(), "Call Recorder Decativated", Toast.LENGTH_LONG).show();
 
