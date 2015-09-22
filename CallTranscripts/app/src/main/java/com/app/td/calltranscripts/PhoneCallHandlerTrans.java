@@ -156,7 +156,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver {
             Log.d(debugTag, "stop call");
             saveFile();
             Log.d(debugTag, "File saved");
-            recognizer.cancel();
+            recognizer.cancel(); // should line be removed?
             recognizer.destroy();
             Log.d(debugTag, "destroyed recognizer");
             unMuteSounds();
