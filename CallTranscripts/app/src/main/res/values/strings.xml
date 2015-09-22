@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Call Transcripts</string>
-
+    <string name="service_not_available">Service Not Available</string>
+    <string name="invalid_lat_long_used">Invalid Lat Long</string>
+    <string name="no_address_found">No address found</string>
+    <string name="address_found">Address found</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 </resources>

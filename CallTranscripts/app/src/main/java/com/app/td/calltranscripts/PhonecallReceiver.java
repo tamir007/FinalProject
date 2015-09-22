@@ -42,6 +42,7 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
         }
     }
 
+
     //Derived classes should override these to respond to specific events of interest
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
 
