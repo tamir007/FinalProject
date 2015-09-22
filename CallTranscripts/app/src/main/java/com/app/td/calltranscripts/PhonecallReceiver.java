@@ -16,7 +16,7 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private static Date callStartTime;
     private static boolean isIncoming;
-    private static String savedNumber;  //because the passed incoming is only valid in ringing
+    public static String savedNumber;  //because the passed incoming is only valid in ringing
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -41,6 +41,7 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
             onCallStateChanged(context, state, number);
         }
     }
+
 
     //Derived classes should override these to respond to specific events of interest
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
