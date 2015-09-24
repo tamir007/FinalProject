@@ -57,6 +57,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static boolean running = false;
     static SpeechToTextNoPop speech;
     static Context myContext;
+    static String callAddress;
    // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     private Location mLastLocation;
@@ -95,18 +96,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
 
-    public static void writeLocation(String address){
-        Log.i("debug" , "writeLocation");
-
-        FileWriter myWriteFile;
-        try {
-            myWriteFile = new FileWriter(Environment.getExternalStorageDirectory().getAbsolutePath() +
-                    "/call_location.txt");
-            myWriteFile.write("Location : " + address);
-            myWriteFile.flush();
-        } catch (IOException e) {
-            Log.i("debug" , "error writing location");
-        }
+    public static void setLocation(String address){
+        callAddress = address;
     }
 
 
@@ -141,8 +132,11 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         FileWriter writeFile;
         boolean isSpeaking;
         private void saveFile() {
+            Log.i(debugTag , "save file");
             try {
                 writeFile.write(theText);
+                writeFile.write("\n" + "Location: \n"  + "latitude : " + latitude + "\n" +
+                        "longitude : " + longitude + "\n" + "ADDRESS : " + callAddress);
                 writeFile.flush();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -196,7 +190,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 Log.d(debugTag , "error reading file");
             }
 
-            Log.d(debugTag , "read installation bit");
+            //Log.d(debugTag , "read installation bit");
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
@@ -205,7 +199,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
             dir.mkdir();
-            Log.i(debugTag, dateAndTime);
+           // Log.i(debugTag, dateAndTime);
             String fileName =  dateAndTime + ".txt";
             fileName = fileName.replaceAll("\\s","");
             fileName = fileName.replaceAll(":","");

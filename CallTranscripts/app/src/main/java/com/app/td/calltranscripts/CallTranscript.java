@@ -54,8 +54,8 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
         // checks if receiver is installed and init checkBox
         checkIfInstalled(checkBox);
 
-       // buildGoogleApiClient();
-        //PhoneCallHandlerTrans.mGoogleApiClient.connect();
+        buildGoogleApiClient();
+        PhoneCallHandlerTrans.mGoogleApiClient.connect();
 
         // set up checkbox on click
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -111,6 +111,9 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
             //Log.i(debugTag, "Location : longitude = " + PhoneCallHandlerTrans.longitude);
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
+            PhoneCallHandlerTrans.latitude = latitude;
+            PhoneCallHandlerTrans.longitude = longitude;
+
             Log.i(debugTag, "Location : latitude = " + latitude);
             Log.i(debugTag, "Location : longitude = " + longitude);
 
@@ -233,7 +236,7 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
             // or an error message sent from the intent service.
             mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
             Log.i(debugTag , "ADDRESS : " + mAddressOutput);
-            PhoneCallHandlerTrans.writeLocation(mAddressOutput);
+            PhoneCallHandlerTrans.setLocation(mAddressOutput);
 
             // Show a toast message if an address was found.
             if (resultCode == Constants.SUCCESS_RESULT) {
