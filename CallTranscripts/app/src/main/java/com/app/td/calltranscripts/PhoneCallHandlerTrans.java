@@ -58,35 +58,35 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static SpeechToTextNoPop speech;
     static Context myContext;
     static String callAddress;
-   // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+    // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     private Location mLastLocation;
 
     static double latitude;
     static double longitude;
 
-//     Google client to interact with Google API
+    //     Google client to interact with Google API
     static GoogleApiClient mGoogleApiClient;
 
 
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
-            recordMic();
+        recordMic();
     }
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
-            recordMic();
+        recordMic();
     }
 
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-            stopRecordMic();
+        stopRecordMic();
     }
 
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
-         stopRecordMic();
+        stopRecordMic();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     private void recordMic() {
         Log.i(debugTag, "record mic");
 
-          //  mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
 
         speech = new SpeechToTextNoPop();
         speech.initialize();
@@ -116,14 +116,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         if (speech != null) speech.stop();
     }
 
-
-
-
-
-
-
     public class SpeechToTextNoPop {
-
+        RecognitionListener listener;
         SpeechRecognizer recognizer;
         Intent intent;
         boolean isNewConversation, shouldStop;
@@ -131,6 +125,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         String theText;
         FileWriter writeFile;
         boolean isSpeaking;
+        String lastText;
         private void saveFile() {
             Log.i(debugTag , "save file");
             try {
@@ -199,18 +194,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
             dir.mkdir();
-           // Log.i(debugTag, dateAndTime);
+            // Log.i(debugTag, dateAndTime);
             String fileName =  dateAndTime + ".txt";
             fileName = fileName.replaceAll("\\s","");
             fileName = fileName.replaceAll(":","");
             fileName = fileName.replaceAll("/","");
             fileName = "/" + fileName;
 
-            Log.i(debugTag ,fileName );
+            Log.i(debugTag, fileName);
 
             try {
                 writeFile = new FileWriter(dir.getAbsolutePath() +
-                       fileName);
+                        fileName);
 
             } catch (IOException e) {
                 // do nothing
@@ -219,6 +214,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             Log.d(debugTag , "FileWriter set up");
             listenerNum = 1;
             theText = "";
+            lastText = "";
             isNewConversation = true;
             shouldStop = false;
 
@@ -244,9 +240,9 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 //                Log.i(debugTag, "ERROR writing contact");
 //                e.printStackTrace();
 //            }
+//
+// 1 Intents
 
-
-            // 1 Intents
             intent = createRecognitionIntent();
             // 1 Speech Recognizer
             recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
@@ -259,27 +255,26 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             // mute sounds
             muteSounds();
             // The Listeners
-            Log.d(debugTag , "get new listener");
-            RecognitionListener listener = createRecognitionListener();
+            Log.d(debugTag, "get new listener");
+            listener = createRecognitionListener();
             // Set Listeners to SpeechRecognizer
-            Log.d(debugTag , "before bind - recognizer and listener");
+            Log.d(debugTag, "before bind - recognizer and listener");
             recognizer.setRecognitionListener(listener);
             //run first recognizer
             Log.d(debugTag, "after bind - recognizer and listener");
             runSpeech(recognizer, intent);
-            Log.d(debugTag , "after run speech");
+            Log.d(debugTag, "after run speech");
         }
 
         public void stop() {
 
             shouldStop = true;
             Log.d(debugTag, "stop call");
-            saveFile();
-            Log.d(debugTag, "File saved");
-            recognizer.cancel();
-            recognizer.destroy();
-            Log.d(debugTag, "destroyed recognizer");
-            unMuteSounds();
+            recognizer.stopListening();
+//            Log.d(debugTag, "File saved");
+//            recognizer.cancel();
+//            recognizer.destroy();
+//            Log.d(debugTag, "destroyed recognizer");
             Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -289,7 +284,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         }
 
         public RecognitionListener createRecognitionListener() {
-            
+
             return new RecognitionListener() {
 
                 @Override
@@ -297,17 +292,41 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                     Log.d(debugTag, "onResults");
                     ArrayList<String> voiceResults = results
                             .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    String temp = "";
                     if (voiceResults == null) {
                         // do nothing;
                     } else {
                         theText += voiceResults.get(0) + "\n";
+//                        if(voiceResults.get(0).contains(lastText)){
+//                            Log.d(debugTag, "contains last phrase");
+//                            temp = voiceResults.get(0);
+//                            theText += temp.substring(lastText.length()) + " ";
+//                            Log.d(debugTag, "Taken out of with : " +temp.substring(lastText.length()));
+//
+//                        }else {
+//                            temp  = voiceResults.get(0);
+//                            theText += temp + "\n";
+//                            Log.d(debugTag ," Taken out of with : " + temp);
+//                        }
+//                        Log.d(debugTag, "Results : " + voiceResults.get(0));
+//                        lastText = temp;
+//                        Log.d(debugTag, "Last Text : " + lastText);
                     }
+
                     Log.d(debugTag, "Before should stop");
                     // if should stop and not continue the listener cycles
                     if (!shouldStop) {
                         Log.d(debugTag, "called reRunListener");
-                        reRunListener();
+                        reRunListener(0);
                         Log.d(debugTag, "returned reRunListener");
+                    }else{
+                        saveFile();
+                        Log.d(debugTag, "File Saved");
+                        recognizer.cancel();
+                        //recognizer.destroy();
+                        Log.d(debugTag, "destroyed recognizer");
+                        unMuteSounds();
+                        Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -316,15 +335,33 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                     Log.d(debugTag, "Ready for speech");
                 }
 
-                private void reRunListener() {
+                private void reRunListener(int error) {
+
                     recognizer.cancel();
+                    if(recognizer != null){
+                        recognizer.destroy();
+                    }
+                    recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
+                    recognizer.setRecognitionListener(listener);
                     runSpeech(recognizer, intent);
                 }
 
                 @Override
                 public void onError(int error) {
                     Log.d(debugTag, "onError : " + error);
-                    if(!shouldStop) reRunListener();
+                    if(!shouldStop){
+                        Log.d(debugTag, "continue");
+                        reRunListener(error);
+                    }else{
+                        Log.d(debugTag, "Stopping in error");
+                        saveFile();
+                        Log.d(debugTag, "File Saved");
+                        recognizer.cancel();
+                        //recognizer.destroy();
+                        Log.d(debugTag, "destroyed recognizer");
+                        unMuteSounds();
+                        Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
@@ -353,13 +390,26 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 public void onPartialResults(Bundle partialResults) {
                     // TODO Auto-generated method stub
                     Log.d(debugTag, "onPartialResults");
-                    ArrayList<String> voiceResults = partialResults
-                            .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (voiceResults == null) {
-                        // do nothing;
-                    } else {
-                        theText += voiceResults.get(0) + "\n";
-                    }
+//                    String temp = "";
+//                    ArrayList<String> voiceResults = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+//                    if (voiceResults == null) {
+//                        // do nothing;
+//                    } else {
+//                        if(voiceResults.get(0).contains(lastText)){
+//                            Log.d(debugTag, "contains last phrase");
+//                            temp = voiceResults.get(0);
+//                            theText += temp.substring(lastText.length()) + " " ;
+//                            Log.d(debugTag, "Taken out of with : " +temp.substring(lastText.length()));
+//
+//                        }else {
+//                            temp  = voiceResults.get(0);
+//                            theText += temp + "\n";
+//                            Log.d(debugTag ," Taken out of with : " + temp);
+//                        }
+//                        Log.d(debugTag, "Parial Results : " + voiceResults.get(0));
+//                        lastText = temp;
+//                        Log.d(debugTag, "Last Text : " + lastText);
+//                    }
                 }
                 @Override
                 public void onRmsChanged(float rmsdB) {
@@ -375,7 +425,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
                     "com.app.td.calltranscripts");
             //intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-            intent.putExtra("android.speech.extra.DICTATION_MODE", true);
+            //intent.putExtra("android.speech.extra.DICTATION_MODE", true);
             return intent;
         }
 
