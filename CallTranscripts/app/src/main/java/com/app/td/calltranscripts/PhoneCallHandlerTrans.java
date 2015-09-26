@@ -330,7 +330,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         saveFile();
                         Log.d(debugTag, "File Saved");
                         recognizer.cancel();
-                        //recognizer.destroy();
+                        recognizer.destroy();
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
@@ -364,7 +364,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         saveFile();
                         Log.d(debugTag, "File Saved");
                         recognizer.cancel();
-                        //recognizer.destroy();
+                        recognizer.destroy();
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
