@@ -126,7 +126,10 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         FileWriter writeFile;
         boolean isSpeaking;
         String lastText;
+        boolean wasWritten;
+
         private void saveFile() {
+            if(wasWritten) return;
             Log.i(debugTag , "save file");
             try {
                 writeFile.write(theText);
@@ -136,6 +139,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            wasWritten =true;
         }
 
         public String findContact(String phoneNumber) {
@@ -217,6 +222,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             lastText = "";
             isNewConversation = true;
             shouldStop = false;
+            wasWritten = false;
 
             // add time and date to the file.
 
