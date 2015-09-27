@@ -104,9 +104,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     private void recordMic() {
         Log.i(debugTag, "record mic");
 
-          //  mGoogleApiClient.connect();
-
         speech = new SpeechToTextNoPop();
+       // mGoogleApiClient.connect();
         speech.initialize();
         speech.run();
 
@@ -119,9 +118,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
 
-
-
-
     public class SpeechToTextNoPop {
 
         SpeechRecognizer recognizer;
@@ -130,6 +126,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         int listenerNum;
         String theText;
         FileWriter writeFile;
+
         boolean isSpeaking;
         private void saveFile() {
             Log.i(debugTag , "save file");
@@ -190,7 +187,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 Log.d(debugTag , "error reading file");
             }
 
-            //Log.d(debugTag , "read installation bit");
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
@@ -199,7 +195,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
             dir.mkdir();
-           // Log.i(debugTag, dateAndTime);
+
             String fileName =  dateAndTime + ".txt";
             fileName = fileName.replaceAll("\\s","");
             fileName = fileName.replaceAll(":","");
@@ -216,7 +212,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 // do nothing
                 Log.i(debugTag , "no writer");
             }
-            Log.d(debugTag , "FileWriter set up");
+
             listenerNum = 1;
             theText = "";
             isNewConversation = true;
@@ -259,13 +255,11 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             // mute sounds
             muteSounds();
             // The Listeners
-            Log.d(debugTag , "get new listener");
             RecognitionListener listener = createRecognitionListener();
             // Set Listeners to SpeechRecognizer
-            Log.d(debugTag , "before bind - recognizer and listener");
+
             recognizer.setRecognitionListener(listener);
             //run first recognizer
-            Log.d(debugTag, "after bind - recognizer and listener");
             runSpeech(recognizer, intent);
             Log.d(debugTag , "after run speech");
         }
@@ -285,6 +279,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         }
 
         private void runSpeech(SpeechRecognizer n_recognizer, Intent n_intent) {
+
             n_recognizer.startListening(n_intent);
         }
 
@@ -318,6 +313,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 private void reRunListener() {
                     recognizer.cancel();
+                    //recognizer.setRecognitionListener(listener);
                     runSpeech(recognizer, intent);
                 }
 
@@ -329,7 +325,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    isSpeaking = true;
+                    
                     Log.d(debugTag, "onBeginingOfSpeech");
                 }
 

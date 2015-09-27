@@ -35,12 +35,8 @@ import java.util.Locale;
 
 public class CallTranscript extends AppCompatActivity  implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     String debugTag = "debug";
-//      private LocationRequest mLocationRequest;
-//
+
       private Location mLastLocation;
-//
-//  //   Google client to interact with Google API
-//    private GoogleApiClient mGoogleApiClient;
 
     public AddressResultReceiver mResultReceiver;
 
@@ -54,8 +50,8 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
         // checks if receiver is installed and init checkBox
         checkIfInstalled(checkBox);
 
-        buildGoogleApiClient();
-        PhoneCallHandlerTrans.mGoogleApiClient.connect();
+     //   buildGoogleApiClient();
+      //  PhoneCallHandlerTrans.mGoogleApiClient.connect();
 
         // set up checkbox on click
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -94,6 +90,14 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
             }
         });
 
+        String myContacts = GetContactsFromText.readContacts(this);
+        String conversation = "hey man what's happening?" +
+                "yeah i know he gave us the toughest project you know alik and alon got a really easy task" +
+                "maybe we shoukd ask them if they could help us or talk with enav to give us a little more time" +
+                "yeah ok maybe it's a good idea ok so catch you later man";
+        String mentioned = GetContactsFromText.mentionedContacts(conversation , myContacts);
+        Log.i(debugTag , mentioned);
+
     }
 
         /**
@@ -105,10 +109,7 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
                 .getLastLocation(PhoneCallHandlerTrans.mGoogleApiClient);
 
         if (mLastLocation != null) {
-           // PhoneCallHandlerTrans.latitude = mLastLocation.getLatitude();
-            //PhoneCallHandlerTrans.longitude = mLastLocation.getLongitude();
-            //Log.i(debugTag, "Location : latitude = " + PhoneCallHandlerTrans.latitude);
-            //Log.i(debugTag, "Location : longitude = " + PhoneCallHandlerTrans.longitude);
+
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
             PhoneCallHandlerTrans.latitude = latitude;
