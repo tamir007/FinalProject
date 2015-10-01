@@ -94,12 +94,12 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
         });
 
         String myContacts = GetContactsFromText.readContacts(this);
-        String conversation = "hey man what's happening?" +
-                "yeah i know he gave us the toughest project you know alik and alon got a really easy task" +
-                "maybe we shoukd ask them if they could help us or talk with enav to give us a little more time" +
-                "yeah ok maybe it's a good idea ok so catch you later man";
-        String mentioned = GetContactsFromText.mentionedContacts(conversation , myContacts);
-        Log.i(debugTag , mentioned);
+        //String conversation = "hey man what's happening?" +
+          //      "yeah i know he gave us the toughest project you know alik and alon got a really easy task" +
+            //    "maybe we shoukd ask them if they could help us or talk with enav to give us a little more time" +
+              //  "yeah ok maybe it's a good idea ok so catch you later man";
+        //String mentioned = GetContactsFromText.mentionedContacts(conversation , myContacts);
+        //Log.i(debugTag , mentioned);
 
     }
 

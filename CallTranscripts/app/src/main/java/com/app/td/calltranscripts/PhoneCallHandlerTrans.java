@@ -60,6 +60,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static String callAddress;
     // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
+    public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
+
     private Location mLastLocation;
 
     static double latitude;
