@@ -34,7 +34,8 @@ public class GetContactsFromText {
     }
 
 
-    public static String mentionedContacts(String text , String contacts){
+    public static String getMentionedContacts(String text, Activity activity){
+        String contacts = readContacts(activity);
         String[] listOfContacts = contacts.split("\n");
         String[] listOfWords = text.split(" ");
         String mentioned = "";
