@@ -211,7 +211,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             }.start();
         }
 
-        private void predictionCorrect(){
+        public void predictionCorrect(){
             bag.addNewVectorToKernel(newCall);
             bag.w_vec.add(signedResult);
             bag.tags.add(signedResult);
@@ -221,7 +221,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
 
-        private void predictionIncorrect(){
+        public void predictionIncorrect(){
             bag.w_vec.add(0.0);
             bag.tags.add(-signedResult);
             bag.samples.add(newCall);

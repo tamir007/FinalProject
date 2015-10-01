@@ -16,13 +16,18 @@ import android.widget.Toast;
 
 public class SuggestActivity extends AppCompatActivity {
 
+    private boolean cycle ;
+    private boolean wasChecked ;
+    public final String debugTag = "debug";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(debugTag, "on create (SUGGEST)");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suggest);
+        wasChecked = false;
         Intent intent = getIntent();
         String[] mentoinedNames = intent.getStringArrayExtra(PhoneCallHandlerTrans.MENTIONED_NAMES_EXTRA);
-
+        cycle = false;
 
         // create the layout params that will be used to define how your
         // button will be displayed
@@ -48,6 +53,8 @@ public class SuggestActivity extends AppCompatActivity {
             btn.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
 
+                    cycle = true;
+
                     Toast.makeText(getApplicationContext(),
                             "Clicked Button Index :" + index,
                             Toast.LENGTH_LONG).show();
@@ -59,6 +66,12 @@ public class SuggestActivity extends AppCompatActivity {
             ll.addView(btn);
             //Add button to LinearLayout defined in XML
 
+        }
+        if (cycle){
+            PhoneCallHandlerTrans.speech.predictionCorrect();
+        }
+        else{
+            PhoneCallHandlerTrans.speech.predictionIncorrect();
         }
 
     }
@@ -83,5 +96,43 @@ public class SuggestActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void checkCycle(){
+        Log.i(debugTag , "checkCycle");
+
+        if (wasChecked){
+            Log.i(debugTag , "was checked already");
+            return;
+        }
+        if (cycle){
+            PhoneCallHandlerTrans.speech.predictionCorrect();
+        }
+        else{
+            PhoneCallHandlerTrans.speech.predictionIncorrect();
+        }
+        wasChecked = true;
+    }
+
+    @Override
+    protected void onStop() {
+        Log.i(debugTag , "onStop (SUGGEST)");
+        super.onStop();
+        checkCycle();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.i(debugTag , "onDestroy (SUGGEST)");
+        super.onDestroy();
+        checkCycle();
+
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(debugTag , "onPause (SUGGEST)");
+        super.onPause();
+        checkCycle();
     }
 }
