@@ -1,5 +1,6 @@
 package com.app.td.calltranscripts;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,8 +44,11 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static Context myContext;
     static String callAddress;
     // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+
     HashMap<String, Double> newCall;
     double signedResult;
+
+    public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
     private Location mLastLocation;
     private boolean isRelevant;
     static double latitude;
@@ -104,9 +108,11 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     private void recordMic() {
         Log.i(debugTag, "record mic");
 
+
         mGoogleApiClient.connect();
 
         speech = new SpeechToTextNoPop();
+       // mGoogleApiClient.connect();
         speech.initialize();
         speech.run();
 
@@ -124,6 +130,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         int listenerNum;
         String theText;
         FileWriter writeFile;
+
         boolean isSpeaking;
         String lastText;
         boolean wasWritten;
@@ -169,9 +176,10 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             if(signedResult == 1.0){
                 // wants call suggestions
                 // call intent activity
-//                Intent intent = new Intent(myContext, SuggestsActivity.class);
-//                intent.putExtra()
                 
+//                Intent intent = new Intent(myContext, SuggestsActivity.class);
+//                intent.putExtra(MENTIONED_NAMES_EXTRA,GetContactsFromText.getMentionedContacts(theText, (Activity) myContext));
+
             }else{
                 // don't want call suggestions
                 startRelevantTimer();
@@ -285,7 +293,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 Log.d(debugTag , "error reading file");
             }
 
-            //Log.d(debugTag , "read installation bit");
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
@@ -294,7 +301,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
             dir.mkdir();
-            // Log.i(debugTag, dateAndTime);
+
             String fileName =  dateAndTime + ".txt";
             fileName = fileName.replaceAll("\\s","");
             fileName = fileName.replaceAll(":","");
@@ -311,7 +318,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 // do nothing
                 Log.i(debugTag , "no writer");
             }
-            Log.d(debugTag , "FileWriter set up");
+
             listenerNum = 1;
             theText = "";
             lastText = "";
@@ -356,13 +363,14 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             // mute sounds
             muteSounds();
             // The Listeners
+
             Log.d(debugTag, "get new listener");
             listener = createRecognitionListener();
             // Set Listeners to SpeechRecognizer
             Log.d(debugTag, "before bind - recognizer and listener");
+
             recognizer.setRecognitionListener(listener);
             //run first recognizer
-            Log.d(debugTag, "after bind - recognizer and listener");
             runSpeech(recognizer, intent);
             Log.d(debugTag, "after run speech");
         }
@@ -382,6 +390,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         }
 
         private void runSpeech(SpeechRecognizer n_recognizer, Intent n_intent) {
+
             n_recognizer.startListening(n_intent);
         }
 
@@ -428,11 +437,13 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 private void reRunListener(int error) {
 
                     recognizer.cancel();
+
                     if(recognizer != null){
                         recognizer.destroy();
                     }
                     recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
                     recognizer.setRecognitionListener(listener);
+
                     runSpeech(recognizer, intent);
                 }
 
@@ -458,7 +469,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    isSpeaking = true;
+                    
                     Log.d(debugTag, "onBeginingOfSpeech");
                 }
 
