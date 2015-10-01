@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,36 +23,30 @@ public class SuggestActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String[] mentoinedNames = intent.getStringArrayExtra(PhoneCallHandlerTrans.MENTIONED_NAMES_EXTRA);
 
+
+        // create the layout params that will be used to define how your
+        // button will be displayed
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
         for (int i = 0 ; i < mentoinedNames.length ; i++){
 
             // Create LinearLayout
             LinearLayout ll = new LinearLayout(this);
             ll.setOrientation(LinearLayout.HORIZONTAL);
 
-            // Create TextView
-            TextView product = new TextView(this);
-            product.setText(" Product"+j+"    ");
-            ll.addView(product);
-
-            // Create TextView
-            TextView price = new TextView(this);
-            price.setText("  $"+j+"     ");
-            ll.addView(price);
-
             // Create Button
             final Button btn = new Button(this);
             // Give button an ID
-            btn.setId(j+1);
-            btn.setText("Add To Cart");
+            btn.setId(i + 1);
+            btn.setText(mentoinedNames[i]);
             // set the layoutParams on the button
             btn.setLayoutParams(params);
 
-            final int index = j;
+            final int index = i;
             // Set click listener for button
             btn.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-
-                    Log.i("TAG", "index :" + index);
 
                     Toast.makeText(getApplicationContext(),
                             "Clicked Button Index :" + index,
@@ -63,10 +58,9 @@ public class SuggestActivity extends AppCompatActivity {
             //Add button to LinearLayout
             ll.addView(btn);
             //Add button to LinearLayout defined in XML
-            lm.addView(ll);
-        });
 
         }
+
     }
 
     @Override
