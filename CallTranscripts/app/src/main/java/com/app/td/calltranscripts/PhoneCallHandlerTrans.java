@@ -176,8 +176,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             if(signedResult == 1.0){
                 // wants call suggestions
                 // call intent activity
-                
-//                Intent intent = new Intent(myContext, SuggestsActivity.class);
+
+//                Intent intent = new Intent(myContext, SuggestActivity.class);
 //                intent.putExtra(MENTIONED_NAMES_EXTRA,GetContactsFromText.getMentionedContacts(theText, (Activity) myContext));
 
             }else{
