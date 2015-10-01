@@ -1,37 +1,24 @@
 package com.app.td.calltranscripts;
 
-import android.app.Activity;
-import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.telecom.Call;
-import android.telephony.PhoneStateListener;
 import android.util.Log;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.Toast;
 
 //google shit
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 
 
 import java.io.File;
@@ -42,10 +29,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import com.google.android.gms.location.LocationListener;
+import java.util.HashMap;
 
 /**
  * This Class will handle all Tele-Phone actions.
@@ -59,13 +43,17 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static Context myContext;
     static String callAddress;
     // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-
+    HashMap<String, Double> newCall;
+    double signedResult;
     private Location mLastLocation;
-
+    private boolean isRelevant;
     static double latitude;
     static double longitude;
-
-    //     Google client to interact with Google API
+    static BagOfWords bag = null;
+    private boolean flag1 = false;
+    private boolean flag0 = false;
+    private int turn = 0;
+    // Google client to interact with Google API
     static GoogleApiClient mGoogleApiClient;
 
 
@@ -76,7 +64,19 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
+
         recordMic();
+        flag0 = true;
+        turn = 1;
+        while(flag1 && turn == 1){
+            // busy wait
+        }
+        if(isRelevant){
+            speech.predictionIncorrect();
+        }
+
+        flag0 = false;
+
     }
 
     @Override
@@ -127,6 +127,101 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         boolean isSpeaking;
         String lastText;
         boolean wasWritten;
+
+
+        private void startBag(){
+
+
+            // if bag is not initialized, load previous calls
+            if(bag == null){
+                Log.d("debug", "Load previous knowledge");
+                bag = new BagOfWords(1.0);
+                bag.loadWVector(Environment.getExternalStorageDirectory().getAbsolutePath()
+                        + "data/wVec.txt");
+                bag.loadTags(Environment.getExternalStorageDirectory().getAbsolutePath()
+                        + "data/tags.txt");
+            }
+            signedResult = 0.0;
+            bag.addCallsFromFolder(Environment.getExternalStorageDirectory().getAbsolutePath()
+                    + "/OLD_TRANSCRIPTS");
+
+            Log.d("debug","Analyzing new call");
+            File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+                    +"/TRANSCRIPTS");
+            File[] listOfFiles = folder.listFiles();
+            if(listOfFiles.length == 0){
+                Log.d("debug","no new calls");
+            }
+
+
+           newCall = bag.getMappingVector((listOfFiles[0]).getAbsolutePath());
+            if (bag.samples.size() == 0){
+                bag.samples.add(newCall);
+                bag.w_vec.add(1.0);
+                bag.tags.add(1.0);
+                bag.saveData();
+            }
+
+            double result = bag.calcHypothesis(newCall);
+            Log.d("debug" , "Result : " + result);
+            signedResult = Math.signum(result);
+
+            if(signedResult == 1.0){
+                // wants call suggestions
+                // call intent activity
+//                Intent intent = new Intent(myContext, SuggestsActivity.class);
+//                intent.putExtra()
+                
+            }else{
+                // don't want call suggestions
+                startRelevantTimer();
+            }
+        }
+
+        private void startRelevantTimer() {
+            isRelevant = true;
+            new CountDownTimer(15000, 15000) {
+
+                public void onTick(long millisUntilFinished) {
+                    // do nothing
+                }
+
+                public void onFinish() {
+                    flag1 = true;
+                    turn = 0;
+                    while(flag0 && turn == 0){
+                        // busy wait
+                    }
+
+                    if(isRelevant){
+                        speech.predictionCorrect();
+                    }
+                    isRelevant = false;
+
+                    flag1 = false;
+                }
+            }.start();
+        }
+
+        private void predictionCorrect(){
+            bag.addNewVectorToKernel(newCall);
+            bag.w_vec.add(signedResult);
+            bag.tags.add(signedResult);
+
+            bag.saveData();
+        }
+
+
+
+        private void predictionIncorrect(){
+            bag.w_vec.add(0.0);
+            bag.tags.add(-signedResult);
+            bag.samples.add(newCall);
+            bag.optimizeKernelCoefficients();
+
+            bag.saveData();
+        }
+
 
         private void saveFile() {
             if(wasWritten) return;
@@ -304,20 +399,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         // do nothing;
                     } else {
                         theText += voiceResults.get(0) + "\n";
-//                        if(voiceResults.get(0).contains(lastText)){
-//                            Log.d(debugTag, "contains last phrase");
-//                            temp = voiceResults.get(0);
-//                            theText += temp.substring(lastText.length()) + " ";
-//                            Log.d(debugTag, "Taken out of with : " +temp.substring(lastText.length()));
-//
-//                        }else {
-//                            temp  = voiceResults.get(0);
-//                            theText += temp + "\n";
-//                            Log.d(debugTag ," Taken out of with : " + temp);
-//                        }
-//                        Log.d(debugTag, "Results : " + voiceResults.get(0));
-//                        lastText = temp;
-//                        Log.d(debugTag, "Last Text : " + lastText);
                     }
 
                     Log.d(debugTag, "Before should stop");
@@ -333,6 +414,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         recognizer.destroy();
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
+                        // BAG OF WORDS
+                        startBag();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -367,6 +450,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         recognizer.destroy();
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
+                        // BAG OF WORDS
+                        startBag();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -397,26 +482,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 public void onPartialResults(Bundle partialResults) {
                     // TODO Auto-generated method stub
                     Log.d(debugTag, "onPartialResults");
-//                    String temp = "";
-//                    ArrayList<String> voiceResults = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-//                    if (voiceResults == null) {
-//                        // do nothing;
-//                    } else {
-//                        if(voiceResults.get(0).contains(lastText)){
-//                            Log.d(debugTag, "contains last phrase");
-//                            temp = voiceResults.get(0);
-//                            theText += temp.substring(lastText.length()) + " " ;
-//                            Log.d(debugTag, "Taken out of with : " +temp.substring(lastText.length()));
-//
-//                        }else {
-//                            temp  = voiceResults.get(0);
-//                            theText += temp + "\n";
-//                            Log.d(debugTag ," Taken out of with : " + temp);
-//                        }
-//                        Log.d(debugTag, "Parial Results : " + voiceResults.get(0));
-//                        lastText = temp;
-//                        Log.d(debugTag, "Last Text : " + lastText);
-//                    }
                 }
                 @Override
                 public void onRmsChanged(float rmsdB) {

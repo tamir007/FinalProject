@@ -141,12 +141,12 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
             char isBitOn = (char)readFile.read();
             switch(isBitOn){
                 case '0':
-                    Log.d("Tamir", "isInstalled = false");
+                    Log.d("debug", "isInstalled = false");
                     box.setChecked(false);
                     deActivateRecord();
                     break;
                 case '1':
-                    Log.d("Tamir" , "isInstalled = true");
+                    Log.d("debug" , "isInstalled = true");
                     box.setChecked(true);
                     activateRecord();
                     break;
