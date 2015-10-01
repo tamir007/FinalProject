@@ -61,8 +61,11 @@ public class BagOfWords {
         }
 
         try{
-            File folder = new File("newCalls");
+            File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
             File[] listOfFiles = folder.listFiles();
+            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+                    "/OLD_TRANSCRIPTS");
+            dir.mkdir();
             if(listOfFiles[0].renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
                     "/OLD_TRANSCRIPTS/" + listOfFiles[0].getName()))){
                 Log.d("debug" , "File is moved successful!");
@@ -285,8 +288,10 @@ public class BagOfWords {
      */
     public void addCallsFromFolder(String folderName){
         File folder = new File(folderName);
+        if(!folder.exists()) return;
         File[] listOfFiles = folder.listFiles();
         for(File fl : listOfFiles){
+            Log.d("debug", "in files from old transcript folder");
             addNewVectorToKernel(getMappingVector(fl.getAbsolutePath()));
         }
     }

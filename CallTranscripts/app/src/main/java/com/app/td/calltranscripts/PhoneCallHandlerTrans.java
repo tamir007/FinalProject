@@ -112,7 +112,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         mGoogleApiClient.connect();
 
         speech = new SpeechToTextNoPop();
-       // mGoogleApiClient.connect();
+        // mGoogleApiClient.connect();
         speech.initialize();
         speech.run();
 
@@ -145,10 +145,13 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 bag = new BagOfWords(1.0);
                 bag.loadWVector(Environment.getExternalStorageDirectory().getAbsolutePath()
                         + "data/wVec.txt");
+                Log.d("debug", "After wVec.txt");
                 bag.loadTags(Environment.getExternalStorageDirectory().getAbsolutePath()
                         + "data/tags.txt");
+                Log.d("debug", "After tags.txt");
             }
             signedResult = 0.0;
+            Log.d("debug", "After OLD_TRANSCRIPTS");
             bag.addCallsFromFolder(Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/OLD_TRANSCRIPTS");
 
@@ -161,7 +164,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             }
 
 
-           newCall = bag.getMappingVector((listOfFiles[0]).getAbsolutePath());
+            newCall = bag.getMappingVector((listOfFiles[0]).getAbsolutePath());
             if (bag.samples.size() == 0){
                 bag.samples.add(newCall);
                 bag.w_vec.add(1.0);
@@ -176,14 +179,17 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             if(signedResult == 1.0){
                 // wants call suggestions
                 // call intent activity
-                
-//                Intent intent = new Intent(myContext, SuggestsActivity.class);
-//                intent.putExtra(MENTIONED_NAMES_EXTRA,GetContactsFromText.getMentionedContacts(theText, (Activity) myContext));
-
+                Log.d("debug" , "fire intent");
+                Intent intent = new Intent(myContext, SuggestActivity.class);
+                intent.putExtra(MENTIONED_NAMES_EXTRA,GetContactsFromText.getMentionedContacts(theText, (Activity) myContext));
+                Log.d("debug", "after fire intent");
             }else{
                 // don't want call suggestions
+                Log.d("debug" , "start relevant timer");
                 startRelevantTimer();
+                Log.d("debug", "after relevant timer");
             }
+
         }
 
         private void startRelevantTimer() {
@@ -469,7 +475,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    
+
                     Log.d(debugTag, "onBeginingOfSpeech");
                 }
 
