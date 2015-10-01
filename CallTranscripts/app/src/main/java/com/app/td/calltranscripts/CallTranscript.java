@@ -36,7 +36,8 @@ import java.util.Locale;
 public class CallTranscript extends AppCompatActivity  implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     String debugTag = "debug";
 
-      private Location mLastLocation;
+    private Location mLastLocation;
+
 
     public AddressResultReceiver mResultReceiver;
 
@@ -50,8 +51,10 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
         // checks if receiver is installed and init checkBox
         checkIfInstalled(checkBox);
 
-     //   buildGoogleApiClient();
-      //  PhoneCallHandlerTrans.mGoogleApiClient.connect();
+
+        buildGoogleApiClient();
+//        PhoneCallHandlerTrans.mGoogleApiClient.connect();
+
 
         // set up checkbox on click
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -100,7 +103,7 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
 
     }
 
-        /**
+    /**
      * Method to display the location on UI
      * */
     private void displayLocation() {
