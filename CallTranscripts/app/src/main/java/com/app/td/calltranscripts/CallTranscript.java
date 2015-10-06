@@ -1,7 +1,11 @@
 package com.app.td.calltranscripts;
 
+import android.app.Activity;
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -15,6 +19,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -37,9 +42,11 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
     String debugTag = "debug";
 
     private Location mLastLocation;
-
-
+    public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
+    public static final String BROADCAST = "PACKAGE_NAME.android.action.broadcast";
     public AddressResultReceiver mResultReceiver;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +100,8 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
             }
         });
 
+
+
         String myContacts = GetContactsFromText.readContacts(this);
         //String conversation = "hey man what's happening?" +
           //      "yeah i know he gave us the toughest project you know alik and alon got a really easy task" +
@@ -100,8 +109,18 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
               //  "yeah ok maybe it's a good idea ok so catch you later man";
         //String mentioned = GetContactsFromText.mentionedContacts(conversation , myContacts);
         //Log.i(debugTag , mentioned);
+        PhoneCallHandlerTrans.myPhoneContacts = GetContactsFromText.readContacts(this);
+        //Log.i(debugTag, PhoneCallHandlerTrans.myPhoneContacts);
 
     }
+
+//    public void startMyActivity(View view){
+//        Log.i(debugTag, "start my activity");
+//        String[] contacts = {"alon" , "avi" , "tali"};
+//        Intent intent = new Intent(this, SuggestActivity.class);
+//        intent.putExtra(MENTIONED_NAMES_EXTRA,contacts);
+//        startActivity(intent);
+//    }
 
     /**
      * Method to display the location on UI

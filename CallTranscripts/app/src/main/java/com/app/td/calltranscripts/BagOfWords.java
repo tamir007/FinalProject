@@ -18,6 +18,7 @@ public class BagOfWords {
     ArrayList<HashMap<String,Double>> samples;
     ArrayList<Double> tags;
     ArrayList<Double> w_vec;
+    public static final String debugTag = "debug";
     String[] common;
     double learningRate;
     public BagOfWords(double learningRate){
@@ -202,6 +203,7 @@ public class BagOfWords {
 
 
     public HashMap<String, Double> getMappingVector(String fileName){
+        Log.i(debugTag , "getMappingVector" );
         String transcript = getTextFromFilePath(fileName);
         ArrayList<String> wordArray = getWordsArray(transcript);
         HashMap<String, Double> mapping = new HashMap<String, Double>();
@@ -222,6 +224,7 @@ public class BagOfWords {
      * false - does not want to call boss after
      */
     public ArrayList<String> getWordsArray(String transcript){
+        Log.i(debugTag , "getWordsArray");
         String[] arr = transcript.split("[\n \r]+");
         ArrayList<String> toReturn = new ArrayList<String>();
         for(int i = 0 ; i < arr.length ; i++){
@@ -249,6 +252,7 @@ public class BagOfWords {
     }
 
     public String getTextFromFilePath(String filePath){
+        Log.i (debugTag , "getTextFromFilePath");
         String text = "";
         try {
             text = getStringFromFile(filePath);

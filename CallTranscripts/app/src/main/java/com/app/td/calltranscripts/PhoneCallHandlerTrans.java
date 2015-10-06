@@ -43,6 +43,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     static SpeechToTextNoPop speech;
     static Context myContext;
     static String callAddress;
+    static String myPhoneContacts;
     // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     HashMap<String, Double> newCall;
@@ -60,7 +61,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     // Google client to interact with Google API
     static GoogleApiClient mGoogleApiClient;
 
-
+    public static final String BROADCAST = "PACKAGE_NAME.android.action.broadcast";
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
         recordMic();
@@ -91,6 +92,14 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
         stopRecordMic();
+//        String[] names = {"avi" , "tali" , "boris"};
+//        Log.i(debugTag, "before starting activity");
+//        Context myContext = ctx.getApplicationContext();
+//        Intent intent = new Intent(myContext, SuggestActivity.class);
+//        intent.putExtra(MENTIONED_NAMES_EXTRA, names);
+//        Log.i(debugTag, "after intent extra before start activity");
+//        myContext.startActivity(intent);
+
     }
 
     @Override
@@ -180,8 +189,17 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 // wants call suggestions
                 // call intent activity
                 Log.d("debug" , "fire intent");
-                Intent intent = new Intent(myContext, SuggestActivity.class);
-                intent.putExtra(MENTIONED_NAMES_EXTRA,GetContactsFromText.getMentionedContacts(theText, (Activity) myContext));
+                //Context appContext = myContext.getApplicationContext();
+                //String[] names = {"avi" , "tali" , "boris"};
+                String[] namesToShow = GetContactsFromText.getMentionedContacts(theText , myPhoneContacts);
+
+                Intent intent = new Intent(myContext , SuggestActivity.class);
+                //Log.i(debugTag , theText);
+
+                intent.putExtra(MENTIONED_NAMES_EXTRA,namesToShow);
+                //intent.putExtra(MENTIONED_NAMES_EXTRA,names);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                myContext.startActivity(intent);
                 Log.d("debug", "after fire intent");
             }else{
                 // don't want call suggestions

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -11,6 +12,8 @@ import java.util.ArrayList;
  * Created by daniel zateikin on 26/09/2015.
  */
 public class GetContactsFromText {
+
+    public static final String debugTag = "debug";
 
     public static String readContacts(Activity activity) {
         String contacts = "";
@@ -34,10 +37,16 @@ public class GetContactsFromText {
     }
 
 
-    public static String getMentionedContacts(String text, Activity activity){
-        String contacts = readContacts(activity);
+    public static String[] getMentionedContacts(String text, String contacts){
+
+        Log.i(debugTag , "get Mentioned Contacts");
+        //String contacts = readContacts(activity);
         String[] listOfContacts = contacts.split("\n");
-        String[] listOfWords = text.split(" ");
+        //String[] dic = message.split("\\W+");
+        String[] listOfWords = text.split("\\W+");
+//        for (int i = 0 ; i < listOfWords.length ; i++){
+//            Log.i(debugTag , listOfWords[i]);
+//        }
         String mentioned = "";
         for (int i = 0 ; i < listOfWords.length ; i++){
             for (int j = 0 ; j < listOfContacts.length ; j++){
@@ -47,7 +56,7 @@ public class GetContactsFromText {
                 }
             }
         }
-        return mentioned;
+        return mentioned.split(" ");
     }
 }
 

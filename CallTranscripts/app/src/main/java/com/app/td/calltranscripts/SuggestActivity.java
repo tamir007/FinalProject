@@ -11,12 +11,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class SuggestActivity extends AppCompatActivity {
 
-    private boolean cycle ;
+    private boolean MLcycleAns ;
     private boolean wasChecked ;
     public final String debugTag = "debug";
     @Override
@@ -26,54 +28,42 @@ public class SuggestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_suggest);
         wasChecked = false;
         Intent intent = getIntent();
-        String[] mentoinedNames = intent.getStringArrayExtra(PhoneCallHandlerTrans.MENTIONED_NAMES_EXTRA);
-        cycle = false;
+        String[] mentionedNames = intent.getStringArrayExtra(PhoneCallHandlerTrans.MENTIONED_NAMES_EXTRA);
+        MLcycleAns = false;
 
         // create the layout params that will be used to define how your
         // button will be displayed
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        for (int i = 0 ; i < mentoinedNames.length ; i++){
+        makeButtons(mentionedNames);
 
-            // Create LinearLayout
-            LinearLayout ll = new LinearLayout(this);
-            ll.setOrientation(LinearLayout.HORIZONTAL);
 
-            // Create Button
-            final Button btn = new Button(this);
-            // Give button an ID
-            btn.setId(i + 1);
-            btn.setText(mentoinedNames[i]);
-            // set the layoutParams on the button
-            btn.setLayoutParams(params);
 
-            final int index = i;
-            // Set click listener for button
-            btn.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
+//        if (cycle){
+//            PhoneCallHandlerTrans.speech.predictionCorrect();
+//        }
+//        else{
+//            PhoneCallHandlerTrans.speech.predictionIncorrect();
+//        }
 
-                    cycle = true;
+    }
 
-                    Toast.makeText(getApplicationContext(),
-                            "Clicked Button Index :" + index,
-                            Toast.LENGTH_LONG).show();
+    private void makeButtons (String[] mentionedNames) {
+        TableLayout myTable = (TableLayout) findViewById(R.id.tableForButtons);
 
-                }
-            });
-
-            //Add button to LinearLayout
-            ll.addView(btn);
-            //Add button to LinearLayout defined in XML
-
+        for (int i = 0 ; i < mentionedNames.length ; i++){
+            TableRow tableRow = new TableRow(this);
+            myTable.addView(tableRow);
+            Button myButton = new Button(this);
+            myButton.setText(mentionedNames[i]);
+//            myButton.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Log.i(debugTag , "clicked");
+//                    MLcycleAns = true;
+//                }
+//            });
+            tableRow.addView(myButton);
         }
-        if (cycle){
-            PhoneCallHandlerTrans.speech.predictionCorrect();
-        }
-        else{
-            PhoneCallHandlerTrans.speech.predictionIncorrect();
-        }
-
     }
 
     @Override
@@ -105,7 +95,7 @@ public class SuggestActivity extends AppCompatActivity {
             Log.i(debugTag , "was checked already");
             return;
         }
-        if (cycle){
+        if (MLcycleAns){
             PhoneCallHandlerTrans.speech.predictionCorrect();
         }
         else{

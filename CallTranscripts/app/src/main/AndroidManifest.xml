@@ -23,6 +23,11 @@
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".SuggestReceiver" >
+            <intent-filter >
+                <action android:name="PACKAGE_NAME.android.action.broadcast"/>
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".CallTranscript"
