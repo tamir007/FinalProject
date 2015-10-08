@@ -50,6 +50,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     double signedResult;
 
     public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
+    public static final String PHONE_NUMBERS_EXTRA = "Relevant numbers";
     private Location mLastLocation;
     private boolean isRelevant;
     static double latitude;
@@ -153,16 +154,16 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 Log.d("debug", "Load previous knowledge");
                 bag = new BagOfWords(1.0);
                 bag.loadWVector(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        + "data/wVec.txt");
+                        + "/data/wVec.txt");
                 Log.d("debug", "After wVec.txt");
                 bag.loadTags(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        + "data/tags.txt");
+                        + "/data/tags.txt");
                 Log.d("debug", "After tags.txt");
+                bag.addCallsFromFolder(Environment.getExternalStorageDirectory().getAbsolutePath()
+                        + "/OLD_TRANSCRIPTS");
+                Log.d("debug", "After OLD_TRANSCRIPTS");
             }
             signedResult = 0.0;
-            Log.d("debug", "After OLD_TRANSCRIPTS");
-            bag.addCallsFromFolder(Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/OLD_TRANSCRIPTS");
 
             Log.d("debug","Analyzing new call");
             File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -174,11 +175,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
             newCall = bag.getMappingVector((listOfFiles[0]).getAbsolutePath());
+            Log.d("debug" , "mapping vec : " + listOfFiles[0].getAbsolutePath());
             if (bag.samples.size() == 0){
+
                 bag.samples.add(newCall);
+                Log.d("debug", "add(newCall)s");
                 bag.w_vec.add(1.0);
+                Log.d("debug", "w_vec.add(1.0)");
                 bag.tags.add(1.0);
+                Log.d("debug", "tags.add(1.0)");
                 bag.saveData();
+                Log.d("debug", "saveData");
+
             }
 
             double result = bag.calcHypothesis(newCall);
@@ -196,7 +204,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 Intent intent = new Intent(myContext , SuggestActivity.class);
                 //Log.i(debugTag , theText);
 
-                intent.putExtra(MENTIONED_NAMES_EXTRA,namesToShow);
+                intent.putExtra(MENTIONED_NAMES_EXTRA, namesToShow);
                 //intent.putExtra(MENTIONED_NAMES_EXTRA,names);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 myContext.startActivity(intent);
@@ -236,6 +244,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         }
 
         public void predictionCorrect(){
+            Log.d("debug" , "predictionCorrect()");
             bag.addNewVectorToKernel(newCall);
             bag.w_vec.add(signedResult);
             bag.tags.add(signedResult);
@@ -246,6 +255,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
         public void predictionIncorrect(){
+            Log.d("debug" , "predictionIncorrect()");
             bag.w_vec.add(0.0);
             bag.tags.add(-signedResult);
             bag.samples.add(newCall);
@@ -257,16 +267,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
         private void saveFile() {
             if(wasWritten) return;
-            Log.i(debugTag , "save file");
+            Log.i(debugTag, "save file");
             try {
                 writeFile.write(theText);
-                writeFile.write("\n" + "Location: \n"  + "latitude : " + latitude + "\n" +
+                writeFile.write("\n" + "Location: \n" + "latitude : " + latitude + "\n" +
                         "longitude : " + longitude + "\n" + "ADDRESS : " + callAddress);
                 writeFile.flush();
+                writeFile.close();
             } catch (IOException e) {
-                e.printStackTrace();
-            }
 
+                Log.d("debug" , e.getMessage());
+            }
+            Log.i("debug", "finish saveFile");
             wasWritten =true;
         }
 

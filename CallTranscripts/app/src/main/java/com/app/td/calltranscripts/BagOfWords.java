@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -31,42 +32,57 @@ public class BagOfWords {
 
     private void loadCommon() {
         String text = getTextFromFilePath(Environment.getExternalStorageDirectory().getAbsolutePath() +
-                "data/common.txt");
+                "/data/common.txt");
         common = text.split("[,]");
     }
 
     public void saveData() {
+            Log.d("debug" , "saveData ");
+        File dirData = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+                "/data");
+        dirData.mkdir();
 
         try {
-            PrintWriter writer;
-            writer = new PrintWriter("data/tags.txt", "UTF-8");
+            //PrintWriter writer;
+            File tagFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/data/tags.txt");
+            FileWriter fileWriter = new FileWriter(tagFile);
+            //writer = new PrintWriter(Environment.getExternalStorageDirectory().getAbsolutePath() + "/data/tags.txt", "UTF-8");
+            Log.d("debug" , "after printwriter ");
             for(double tag : tags){
-                writer.println(tag);
+                fileWriter.write(tag + "\n");
             }
+            Log.d("debug" , "after lineprinting ");
 
-            writer.close();
-        } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            System.out.println("couldnt write to file tags.txt");
+            fileWriter.close();
+        } catch (java.io.IOException e) {
+            Log.d("debug" , "couldnt write to file tags.txt" + e.getMessage());
         }
 
         try {
             PrintWriter writer;
-            writer = new PrintWriter("data/wVec.txt", "UTF-8");
+            writer = new PrintWriter(Environment.getExternalStorageDirectory().getAbsolutePath() + "/data/wVec.txt", "UTF-8");
+            Log.d("debug" , "after printwriter ");
             for(double wCoef : w_vec){
                 writer.println(wCoef);
             }
+            Log.d("debug" , "after println ");
 
             writer.close();
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            System.out.println("couldnt write to file wVec.txt");
+            Log.d("debug", "couldnt write to file wVec.txt");
         }
 
         try{
             File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
+
             File[] listOfFiles = folder.listFiles();
+
+            Log.d("debug" , "here" + listOfFiles);
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
                     "/OLD_TRANSCRIPTS");
-            dir.mkdir();
+            Log.d("debug" , "there");
+            if(!dir.exists())dir.mkdir();
+            Log.d("debug" , " after old transcripts Folder get , files : " + listOfFiles[0]);
             if(listOfFiles[0].renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
                     "/OLD_TRANSCRIPTS/" + listOfFiles[0].getName()))){
                 Log.d("debug" , "File is moved successful!");
@@ -74,7 +90,7 @@ public class BagOfWords {
                 Log.d("debug", "File is failed to move!");
             }
         }catch(Exception e){
-            Log.d("debug", "couldnt move new call to transcript directory");
+            Log.d("debug", "couldnt move new call to transcript directory" + e);
         }
 
 
@@ -150,12 +166,17 @@ public class BagOfWords {
     }
 
     public double calcHypothesis(HashMap<String, Double> vec){
+        Log.d("debug" , "calc hypothesis");
         double sum = 0;
         int i = 0;
+        Log.d("debug" , "samples : " + samples);
         for(HashMap<String, Double> doc : samples){
-            System.out.println(i);
+            //System.out.println(i);
+            Log.d("debug" , "loop again" + i);
+            Log.d("debug" , doc.toString());
             sum += w_vec.get(i++)*kernel(doc,vec);
         }
+        Log.d("debug" , "finish calc hypothesis");
         return sum;
     }
 
@@ -164,13 +185,16 @@ public class BagOfWords {
     private Double kernel(HashMap<String, Double> doc,
                           HashMap<String, Double> vec) {
         double result = 0.0;
+        Log.d("debug" , "start kernel");
         for (HashMap.Entry<String, Double> entry : doc.entrySet()) {
+            Log.d("debug" , "Entry ");
             String key = entry.getKey();
             Double value = entry.getValue();
             if(vec.containsKey(key)){
                 result += vec.get(key)*value;
             }
         }
+        Log.d("debug" , "finish kernel");
         return result;
     }
 
@@ -189,6 +213,7 @@ public class BagOfWords {
                 w_vec.add(i++,new Double(str));
             }
         }
+
     }
 
     public void loadTags(String fileName){
@@ -205,6 +230,9 @@ public class BagOfWords {
     public HashMap<String, Double> getMappingVector(String fileName){
         Log.i(debugTag , "getMappingVector" );
         String transcript = getTextFromFilePath(fileName);
+        if(transcript == "") {
+            Log.d("debug", "String is Empty");
+        }
         ArrayList<String> wordArray = getWordsArray(transcript);
         HashMap<String, Double> mapping = new HashMap<String, Double>();
 

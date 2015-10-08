@@ -2,6 +2,7 @@ package com.app.td.calltranscripts;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,8 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.Console;
 
 public class SuggestActivity extends AppCompatActivity {
 
@@ -47,7 +50,7 @@ public class SuggestActivity extends AppCompatActivity {
 
     }
 
-    private void makeButtons (String[] mentionedNames) {
+    private void makeButtons (final String[] mentionedNames) {
         TableLayout myTable = (TableLayout) findViewById(R.id.tableForButtons);
 
         for (int i = 0 ; i < mentionedNames.length ; i++){
@@ -55,13 +58,25 @@ public class SuggestActivity extends AppCompatActivity {
             myTable.addView(tableRow);
             Button myButton = new Button(this);
             myButton.setText(mentionedNames[i]);
-//            myButton.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    Log.i(debugTag , "clicked");
-//                    MLcycleAns = true;
-//                }
-//            });
+            myButton.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    Log.i(debugTag , "clicked");
+                    MLcycleAns = true;
+                    // call number of contact name
+                    //PhoneCallHandlerTrans.speech.predictionCorrect();
+                    Button b = (Button)v;
+                    String buttonText = b.getText().toString();
+                    String number = buttonText.split(" ")[1];
+                    Log.d("debug", "call : " + number);
+                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                    callIntent.setData(Uri.parse("tel:" + number));
+                    startActivity(callIntent);
+                    Log.d("debug", "number to call : " + number);
+
+                }
+            });
             tableRow.addView(myButton);
         }
     }

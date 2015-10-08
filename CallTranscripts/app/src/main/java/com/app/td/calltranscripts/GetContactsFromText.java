@@ -26,13 +26,23 @@ public class GetContactsFromText {
                 String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
                 String name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                 if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-                    contacts = contacts + name + "\n";
+                    Log.d("debug" , "has number" );
+                    Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{ id }, null);
+                    while (pCur.moveToNext())
+                    {
+                        String contactNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contacts = contacts + name + " " + contactNumber +  "\n";
+                        break;
+                    }
+                    pCur.close();
+                    Log.d("debug", "got number");
 
                     // get the phone number
 
                 }
             }
         }
+        Log.d("debug" , "readContacts okay" );
         return contacts;
     }
 
@@ -42,6 +52,11 @@ public class GetContactsFromText {
         Log.i(debugTag , "get Mentioned Contacts");
         //String contacts = readContacts(activity);
         String[] listOfContacts = contacts.split("\n");
+        String[] listOfContactNames = new String[listOfContacts.length];
+
+        for(int i = 0 ; i < listOfContacts.length ; i++){
+            listOfContactNames[i] = (listOfContacts[i]).split(" ")[0];
+        }
         //String[] dic = message.split("\\W+");
         String[] listOfWords = text.split("\\W+");
 //        for (int i = 0 ; i < listOfWords.length ; i++){
@@ -49,14 +64,14 @@ public class GetContactsFromText {
 //        }
         String mentioned = "";
         for (int i = 0 ; i < listOfWords.length ; i++){
-            for (int j = 0 ; j < listOfContacts.length ; j++){
-                if (listOfContacts[j].toLowerCase().equals(listOfWords[i].toLowerCase())){
-                    mentioned += listOfWords[i] + " ";
+            for (int j = 0 ; j < listOfContactNames.length ; j++){
+                if (listOfContactNames[j].toLowerCase().equals(listOfWords[i].toLowerCase())){
+                    mentioned += listOfWords[i] + " " + listOfContacts[j].split(" ")[1]  + "\n";
                     break;
                 }
             }
         }
-        return mentioned.split(" ");
+        return mentioned.split("\n");
     }
 }
 
