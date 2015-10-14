@@ -209,6 +209,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 myContext.startActivity(intent);
                 Log.d("debug", "after fire intent");
+            }else if(signedResult == 0.0){
+                return;
             }else{
                 // don't want call suggestions
                 Log.d("debug" , "start relevant timer");

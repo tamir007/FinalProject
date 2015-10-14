@@ -122,37 +122,34 @@ public class BagOfWords {
     }
 
     public void optimizeKernelCoefficients() {
-
+        Log.d("debug" , "optimize kernel coef");
         int sampleNumber = getLargestLoss();
-        System.out.println("largest loss samp number : " + sampleNumber);
+
         HashMap<String, Double> newSamp = samples.get(sampleNumber);
         double tag = tags.get(sampleNumber);
-        double loss = calcLoss(newSamp,tag);
-        System.out.println("w_vec before optimizing  : " + w_vec);
-        System.out.println("the loss : " + loss);
+        double loss = calcLoss(newSamp, tag);
         double tempResult = 0.0;
-
+        int logInt = 0;
+        Log.d("debug" , "before loss loop");
         while(loss >= 1.0){
+            if(logInt > 1000) break;
+            Log.d("debug" , "loop with : " + logInt + " new loss : " + loss);
             // (w_t+1)_i= (w_t)_i + y_i*kernel(x_i ,x)
             // fix coefficient vector with respect to samples
+
             for(int i = 0 ; i < w_vec.size() ; i++){
+                Log.d("debug" , "w_vec - loop with : " + i);
                 tempResult = w_vec.get(i)+tag*kernel(newSamp, samples.get(i));
                 w_vec.set(i, tempResult);
             }
-
-
-            System.out.println("newest w_vec  : " +  w_vec);
-
             sampleNumber = getLargestLoss();
-
             newSamp = samples.get(sampleNumber);
             tag = tags.get(sampleNumber);
-            System.out.println("sample : " + sampleNumber + " with loss : " + calcLoss(newSamp, tag));
-            System.out.println("tag : " + tag);
             loss = calcLoss(newSamp, tag);
-            System.out.println("loss : " + loss);
-            System.out.println("preforming loop");
+            logInt++;
         }
+
+        Log.d("debug" , "ended optimize");
 
     }
 
@@ -169,11 +166,12 @@ public class BagOfWords {
         Log.d("debug" , "calc hypothesis");
         double sum = 0;
         int i = 0;
-        Log.d("debug" , "samples : " + samples);
         for(HashMap<String, Double> doc : samples){
-            //System.out.println(i);
-            Log.d("debug" , "loop again" + i);
-            Log.d("debug" , doc.toString());
+            Log.d("debug" ," in hypothesis loop : " +  doc.toString());
+            if(doc.equals(vec)){
+                continue;
+            }
+
             sum += w_vec.get(i++)*kernel(doc,vec);
         }
         Log.d("debug" , "finish calc hypothesis");
@@ -186,14 +184,26 @@ public class BagOfWords {
                           HashMap<String, Double> vec) {
         double result = 0.0;
         Log.d("debug" , "start kernel");
-        for (HashMap.Entry<String, Double> entry : doc.entrySet()) {
-            Log.d("debug" , "Entry ");
+        int i  = 0;
+        for(Iterator<Map.Entry<String, Double>> it = doc.entrySet().iterator(); it.hasNext();){
+            Map.Entry<String, Double> entry = it.next();
+           Log.d("debug" , "docs # : " + i++ + " being compared ");
+
             String key = entry.getKey();
             Double value = entry.getValue();
             if(vec.containsKey(key)){
                 result += vec.get(key)*value;
             }
         }
+
+//        for (HashMap.Entry<String, Double> entry : doc.entrySet()) {
+//            Log.d("debug" , "Entry ");
+//            String key = entry.getKey();
+//            Double value = entry.getValue();
+//            if(vec.containsKey(key)){
+//                result += vec.get(key)*value;
+//            }
+//        }
         Log.d("debug" , "finish kernel");
         return result;
     }
@@ -287,8 +297,6 @@ public class BagOfWords {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println("Read File : " + filePath);
 
         return text;
 
