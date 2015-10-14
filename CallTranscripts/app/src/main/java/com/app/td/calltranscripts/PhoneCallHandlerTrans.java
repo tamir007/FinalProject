@@ -271,7 +271,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             if(wasWritten) return;
             Log.i(debugTag, "save file");
             try {
-                writeFile.write(theText);
+                writeFile.write("#\n" + theText + "\n#");
                 writeFile.write("\n" + "Location: \n" + "latitude : " + latitude + "\n" +
                         "longitude : " + longitude + "\n" + "ADDRESS : " + callAddress);
                 writeFile.flush();

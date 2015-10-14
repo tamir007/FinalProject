@@ -294,6 +294,7 @@ public class BagOfWords {
         String text = "";
         try {
             text = getStringFromFile(filePath);
+            text = text.substring(text.indexOf("#") , text.lastIndexOf("#"));
         } catch (Exception e) {
             e.printStackTrace();
         }
