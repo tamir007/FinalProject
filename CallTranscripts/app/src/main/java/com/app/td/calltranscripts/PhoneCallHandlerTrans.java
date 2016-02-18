@@ -26,11 +26,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+
+import jxl.read.biff.BiffException;
+import jxl.write.WriteException;
 
 /**
  * This Class will handle all Tele-Phone actions.
@@ -48,6 +52,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
     HashMap<String, Double> newCall;
     double signedResult;
+    String[] newRow = new String[7];
 
     public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
     public static final String PHONE_NUMBERS_EXTRA = "Relevant numbers";
@@ -55,10 +60,10 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     private boolean isRelevant;
     static double latitude;
     static double longitude;
-    static BagOfWords bag = null;
-    private boolean flag1 = false;
-    private boolean flag0 = false;
-    private int turn = 0;
+
+
+
+
     // Google client to interact with Google API
     static GoogleApiClient mGoogleApiClient;
 
@@ -72,16 +77,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
 
         recordMic();
-        flag0 = true;
-        turn = 1;
-        while(flag1 && turn == 1){
-            // busy wait
-        }
-        if(isRelevant){
-            speech.predictionIncorrect();
-        }
-
-        flag0 = false;
 
     }
 
@@ -93,13 +88,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
         stopRecordMic();
-//        String[] names = {"avi" , "tali" , "boris"};
-//        Log.i(debugTag, "before starting activity");
-//        Context myContext = ctx.getApplicationContext();
-//        Intent intent = new Intent(myContext, SuggestActivity.class);
-//        intent.putExtra(MENTIONED_NAMES_EXTRA, names);
-//        Log.i(debugTag, "after intent extra before start activity");
-//        myContext.startActivity(intent);
 
     }
 
@@ -144,142 +132,30 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         boolean isSpeaking;
         String lastText;
         boolean wasWritten;
-
-
-        private void startBag(){
-
-
-            // if bag is not initialized, load previous calls
-            if(bag == null){
-                Log.d("debug", "Load previous knowledge");
-                bag = new BagOfWords(1.0);
-                bag.loadWVector(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        + "/data/wVec.txt");
-                Log.d("debug", "After wVec.txt");
-                bag.loadTags(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        + "/data/tags.txt");
-                Log.d("debug", "After tags.txt");
-                bag.addCallsFromFolder(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        + "/OLD_TRANSCRIPTS");
-                Log.d("debug", "After OLD_TRANSCRIPTS");
-            }
-            signedResult = 0.0;
-
-            Log.d("debug","Analyzing new call");
-            File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-                    +"/TRANSCRIPTS");
-            File[] listOfFiles = folder.listFiles();
-            if(listOfFiles.length == 0){
-                Log.d("debug","no new calls");
-            }
-
-
-            newCall = bag.getMappingVector((listOfFiles[0]).getAbsolutePath());
-            Log.d("debug" , "mapping vec : " + listOfFiles[0].getAbsolutePath());
-            if (bag.samples.size() == 0){
-
-                bag.samples.add(newCall);
-                Log.d("debug", "add(newCall)s");
-                bag.w_vec.add(1.0);
-                Log.d("debug", "w_vec.add(1.0)");
-                bag.tags.add(1.0);
-                Log.d("debug", "tags.add(1.0)");
-                bag.saveData();
-                Log.d("debug", "saveData");
-
-            }
-
-            double result = bag.calcHypothesis(newCall);
-            Log.d("debug" , "Result : " + result);
-            signedResult = Math.signum(result);
-
-            if(signedResult == 1.0){
-                // wants call suggestions
-                // call intent activity
-                Log.d("debug" , "fire intent");
-                //Context appContext = myContext.getApplicationContext();
-                //String[] names = {"avi" , "tali" , "boris"};
-                String[] namesToShow = GetContactsFromText.getMentionedContacts(theText , myPhoneContacts);
-
-                Intent intent = new Intent(myContext , SuggestActivity.class);
-                //Log.i(debugTag , theText);
-
-                intent.putExtra(MENTIONED_NAMES_EXTRA, namesToShow);
-                //intent.putExtra(MENTIONED_NAMES_EXTRA,names);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                myContext.startActivity(intent);
-                Log.d("debug", "after fire intent");
-            }else if(signedResult == 0.0){
-                return;
-            }else{
-                // don't want call suggestions
-                Log.d("debug" , "start relevant timer");
-                startRelevantTimer();
-                Log.d("debug", "after relevant timer");
-            }
-
-        }
-
-        private void startRelevantTimer() {
-            isRelevant = true;
-            new CountDownTimer(15000, 15000) {
-
-                public void onTick(long millisUntilFinished) {
-                    // do nothing
-                }
-
-                public void onFinish() {
-                    flag1 = true;
-                    turn = 0;
-                    while(flag0 && turn == 0){
-                        // busy wait
-                    }
-
-                    if(isRelevant){
-                        speech.predictionCorrect();
-                    }
-                    isRelevant = false;
-
-                    flag1 = false;
-                }
-            }.start();
-        }
-
-        public void predictionCorrect(){
-            Log.d("debug" , "predictionCorrect()");
-            bag.addNewVectorToKernel(newCall);
-            bag.w_vec.add(signedResult);
-            bag.tags.add(signedResult);
-
-            bag.saveData();
-        }
-
-
-
-        public void predictionIncorrect(){
-            Log.d("debug" , "predictionIncorrect()");
-            bag.w_vec.add(0.0);
-            bag.tags.add(-signedResult);
-            bag.samples.add(newCall);
-            bag.optimizeKernelCoefficients();
-
-            bag.saveData();
-        }
+        AppData myAppData;
 
 
         private void saveFile() {
             if(wasWritten) return;
             Log.i(debugTag, "save file");
+            newRow[2] = "lat - " + latitude;
+            newRow[3] = "lon - " + longitude;
+            Log.i("debug", theText);
+            newRow[6] = theText;
             try {
-                writeFile.write("#\n" + theText + "\n#");
-                writeFile.write("\n" + "Location: \n" + "latitude : " + latitude + "\n" +
-                        "longitude : " + longitude + "\n" + "ADDRESS : " + callAddress);
-                writeFile.flush();
-                writeFile.close();
+                ExcelUtils.write_excel(newRow);
             } catch (IOException e) {
-
-                Log.d("debug" , e.getMessage());
+                Log.i("debug", "excel IOException");
+                e.printStackTrace();
+            } catch (BiffException e) {
+                Log.i("debug", "excel BiffException");
+                e.printStackTrace();
+            } catch (WriteException e) {
+                Log.i("debug", "excel WriteException");
+                e.printStackTrace();
             }
+
+
             Log.i("debug", "finish saveFile");
             wasWritten =true;
         }
@@ -330,32 +206,20 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             } catch (IOException e) {
                 Log.d(debugTag , "error reading file");
             }
-
+            myAppData = (AppData) SerializationUtil.deserialize(Environment.getExternalStorageDirectory().getAbsolutePath() + "/App_Data.txt");
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
 
             String dateAndTime = dateFormat.format(date);
 
-            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/TRANSCRIPTS");
-            dir.mkdir();
 
-            String fileName =  dateAndTime + ".txt";
-            fileName = fileName.replaceAll("\\s","");
-            fileName = fileName.replaceAll(":","");
-            fileName = fileName.replaceAll("/","");
-            fileName = "/" + fileName;
+            newRow[0] = myAppData.getId(PhoneCallHandlerTrans.savedNumber);
+            newRow[1] = PhoneCallHandlerTrans.savedNumber;
+            long time = TimeUtil.getLongTime();
+            newRow[4] = Integer.toString(TimeUtil.getClockFromLong(time));
+            newRow[5] = Integer.toString(TimeUtil.getDayFromLong(time));
 
-            Log.i(debugTag, fileName);
-
-            try {
-                writeFile = new FileWriter(dir.getAbsolutePath() +
-                        fileName);
-
-            } catch (IOException e) {
-                // do nothing
-                Log.i(debugTag , "no writer");
-            }
 
             listenerNum = 1;
             theText = "";
@@ -364,18 +228,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             shouldStop = false;
             wasWritten = false;
 
-            // add time and date to the file.
-
-
-
-            //write phone number
-            try {
-                writeFile.write("Date and Time : " + dateAndTime + "\n");
-                writeFile.write("Phone Number : " + PhoneCallHandlerTrans.savedNumber + "\n");
-            } catch (IOException e) {
-                Log.i(debugTag , "exception writing");
-                e.printStackTrace();
-            }
 
             //find and write the contact
 //            try {
@@ -445,7 +297,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                     if (voiceResults == null) {
                         // do nothing;
                     } else {
-                        theText += voiceResults.get(0) + "\n";
+                        theText += voiceResults.get(0) + " ";
                     }
 
                     Log.d(debugTag, "Before should stop");
@@ -462,7 +314,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
                         // BAG OF WORDS
-                        startBag();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -500,7 +351,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         Log.d(debugTag, "destroyed recognizer");
                         unMuteSounds();
                         // BAG OF WORDS
-                        startBag();
+                        //startBag();
                         Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
                     }
                 }

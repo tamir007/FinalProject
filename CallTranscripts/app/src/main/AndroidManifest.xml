@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
 
     <application
         android:allowBackup="true"
@@ -22,11 +23,6 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".SuggestReceiver" >
-            <intent-filter >
-                <action android:name="PACKAGE_NAME.android.action.broadcast"/>
             </intent-filter>
         </receiver>
 
@@ -44,10 +40,6 @@
             android:name=".FetchAddressIntentService"
             android:exported="false" />
 
-        <activity
-            android:name=".SuggestActivity"
-            android:label="@string/title_activity_suggest" >
-        </activity>
     </application>
 
 </manifest>

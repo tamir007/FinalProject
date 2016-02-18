@@ -30,10 +30,13 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 
 
 public class CallTranscript extends AppCompatActivity  implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -46,6 +49,7 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
 
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(debugTag, "on create");
@@ -55,6 +59,7 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
         CheckBox checkBox = (CheckBox) findViewById(R.id.checkBox);
         // checks if receiver is installed and init checkBox
         checkIfInstalled(checkBox);
+        AppData myAppData;
 
 
         buildGoogleApiClient();
@@ -83,6 +88,8 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
+                   // myAppData.setCheckBox(true);
                     activateRecord();
                 } else {
                     try {
@@ -92,23 +99,61 @@ public class CallTranscript extends AppCompatActivity  implements GoogleApiClien
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    //myAppData.setCheckBox(false);
                     deActivateRecord();
                 }
 
             }
         });
-
-
-
         String myContacts = GetContactsFromText.readContacts(this);
-        //String conversation = "hey man what's happening?" +
-          //      "yeah i know he gave us the toughest project you know alik and alon got a really easy task" +
-            //    "maybe we shoukd ask them if they could help us or talk with enav to give us a little more time" +
-              //  "yeah ok maybe it's a good idea ok so catch you later man";
-        //String mentioned = GetContactsFromText.mentionedContacts(conversation , myContacts);
-        //Log.i(debugTag , mentioned);
+
         PhoneCallHandlerTrans.myPhoneContacts = GetContactsFromText.readContacts(this);
         //Log.i(debugTag, PhoneCallHandlerTrans.myPhoneContacts);
+
+
+
+        PrintWriter writer = null;
+
+
+        File myfile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/App_Data.txt");
+        String[] fiveMostCalled;
+
+        Log.i("debug", "before my App Data");
+
+        if(!myfile.exists()){
+            fiveMostCalled = CallLogInfo.getMostCalled(5, this);
+            myAppData = new AppData();
+            myAppData.setFiveMostCalled(fiveMostCalled);
+            SerializationUtil.serialize(myAppData, Environment.getExternalStorageDirectory().getAbsolutePath() + "/App_Data.txt");
+            Log.i("debug", "file not exists");
+        }
+        else{
+            myAppData = (AppData) SerializationUtil.deserialize(Environment.getExternalStorageDirectory().getAbsolutePath() + "/App_Data.txt");
+        }
+
+        File contactsFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Five_Most_called.txt");
+
+
+
+
+        if (!contactsFile.exists()) {
+
+            try {
+                writer = new PrintWriter(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Five_Most_called.txt", "UTF-8");
+                for (int i = 0; i < myAppData.getFiveMostCalled().length; i++) {
+                    writer.println(myAppData.getFiveMostCalled()[i]);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            writer.close();
+        }
+
+
+
 
     }
 
